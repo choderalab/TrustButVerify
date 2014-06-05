@@ -160,7 +160,7 @@ class ProteinSystem(System):
 class PeptideSystem(System):
     def __init__(self, sequence, temperature, N_cap=None, C_cap=None, output_frequency=OUTPUT_FREQUENCY_PEPTIDES, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY_PEPTIDES, n_steps=N_STEPS_PEPTIDES, **kwargs):
         
-        super(PeptideSystem, self).__init__(temperature, **kwargs)
+        super(PeptideSystem, self).__init__(temperature, output_frequency=output_frequency, protein_output_frequency=protein_output_frequency, n_steps=n_steps, **kwargs)
 
         self._target_name = "%s_%s_%s" % (N_cap, sequence, C_cap)
         self.sequence = sequence
