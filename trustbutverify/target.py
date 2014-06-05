@@ -15,8 +15,8 @@ class Target(object):
         return os.path.join(self.base_path, "pdb")
         
     @property
-    def equilibration_path(self):
-        return os.path.join(self.base_path, "equilibration")
+    def equil_path(self):
+        return os.path.join(self.base_path, "equil")
 
     @property
     def production_path(self):
@@ -25,17 +25,17 @@ class Target(object):
     def get_initial_pdb_filename(self, ff_name, water_name):
         return os.path.join(self.pdb_path, self.get_base_filename(ff_name, water_name) + ".pdb")  # Actually, the starting model doesn't have an FF dependence but might as well make it consistent here...
     
-    def get_equilibration_pdb_filename(self, ff_name, water_name):
-        return os.path.join(self.equilibration_path, self.get_base_filename(ff_name, water_name) + ".pdb")
+    def get_equil_pdb_filename(self, ff_name, water_name):
+        return os.path.join(self.equil_path, self.get_base_filename(ff_name, water_name) + ".pdb")
 
-    def get_equilibration_protein_pdb_filename(self, ff_name, water_name):
-        return os.path.join(self.equilibration_path, self.get_base_filename(ff_name, water_name) + "_protein" + ".pdb")
+    def get_equil_protein_pdb_filename(self, ff_name, water_name):
+        return os.path.join(self.equil_path, self.get_base_filename(ff_name, water_name) + "_protein" + ".pdb")
 
     def get_production_pdb_filename(self, ff_name, water_name):
         return os.path.join(self.production_path, self.get_base_filename(ff_name, water_name) + ".pdb")
 
-    def get_equilibration_dcd_filename(self, ff_name, water_name):
-        return os.path.join(self.equilibration_path, self.get_base_filename(ff_name, water_name) + ".dcd")                
+    def get_equil_dcd_filename(self, ff_name, water_name):
+        return os.path.join(self.equil_path, self.get_base_filename(ff_name, water_name) + ".dcd")                
 
     def get_production_dcd_filename(self, ff_name, water_name):
         return os.path.join(self.production_path, self.get_base_filename(ff_name, water_name) + ".dcd")                

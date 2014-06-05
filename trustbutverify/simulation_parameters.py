@@ -7,10 +7,12 @@ PADDING = 1.0 * u.nanometers
 CUTOFF = 0.95 * u.nanometers
 PRESSURE = 1.0 * u.atmospheres
 FRICTION = 1.0 / u.picoseconds
-EQUILIBRATION_FRICTION = 1.0 / u.picoseconds
+EQUIL_FRICTION = 1.0 / u.picoseconds
 BAROSTAT_FREQUENCY = 25
 
-EQUILIBRATION_TIMESTEP = 1.0 * u.femtoseconds
+EQUIL_TIMESTEP = 1.0 * u.femtoseconds
 TIMESTEP = 2.0 * u.femtoseconds
 
 base_path = "/home/kyleb/dat/TrustButVerify/"
+
+water_mapping = {"tip3p":"tip3p", "tip4pew":"tip4pew", "tip3p-fb":"tip3p", "tip4p-fb":"tip4pew"}  # This is a hack for OpenMM to map water models to their "base" names.

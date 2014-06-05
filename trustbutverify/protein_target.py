@@ -12,9 +12,19 @@ import utils
 
 
 class ProteinTarget(Target):
-    def __init__(self, pdb_id, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equilibration_timestep=EQUILIBRATION_TIMESTEP):
+    def __init__(self, pdb_id, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equil_timestep=EQUIL_TIMESTEP, barostat_frequency=BAROSTAT_FREQUENCY, friction=FRICTION, equil_friction=EQUIL_FRICTION):
         self.pdb_id = pdb_id
         self._target_name = pdb_id
+        self.padding = padding
+        self.cutoff = cutoff
+        self.pressure = pressure
+        self.timestep = timestep
+        self.equil_timestep = equil_timestep
+        self.friction = friction
+        self.equil_friction = equil_friction
+        self.barostat_frequency = barostat_frequency
+        
+        self.temperature = temperature
         
         if keep_chains is None:
             keep_chains = np.arange(1)
@@ -49,24 +59,24 @@ class ProteinTarget(Target):
     def equilibrate(self, ff_name, water_name):
         
         input_pdb_filename = self.get_initial_pdb_filename(ff_name, water_name)
-        equilibration_pdb_filename = self.get_equilibration_pdb_filename(ff_name, water_name)
-        equilibration_dcd_filename = self.get_equilibration_dcd_filename(ff_name, water_name)
-        equilibration_protein_pdb_filename = self.get_equilibration_protein_pdb_filename(ff_name, water_name)
+        equil_pdb_filename = self.get_equil_pdb_filename(ff_name, water_name)
+        equil_dcd_filename = self.get_equil_dcd_filename(ff_name, water_name)
+        equil_protein_pdb_filename = self.get_equil_protein_pdb_filename(ff_name, water_name)
         
-        utils.make_path(equilibration_pdb_filename)
+        utils.make_path(equil_pdb_filename)
         
-        if os.path.exists(equilibration_pdb_filename):
+        if os.path.exists(equil_pdb_filename):
             return
         
         ff = app.ForceField('%s.xml' % ff_name, '%s.xml' % water_name)
-        pdb = app.PDBFile(get_initial_pdb_filename(ff_name, water_name))
+        pdb = app.PDBFile(input_pdb_filename)
         modeller = app.Modeller(pdb.topology, pdb.positions)
-        modeller.addSolvent(ff, model=base_waters[water_name], padding=self.padding)
+        modeller.addSolvent(ff, model=water_mapping[water_name], padding=self.padding)
         topology = modeller.getTopology()
         positions = modeller.getPositions()
 
         system = ff.createSystem(topology, nonbondedMethod=app.PME, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
-        integrator = mm.LangevinIntegrator(self.temperature, self.equilibration_friction, self.equilibration_timestep)
+        integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
         simulation = app.Simulation(topology, system, integrator)
@@ -78,23 +88,23 @@ class ProteinTarget(Target):
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Running.')
         
-        simulation.reporters.append(app.PDBReporter(equilibration_pdb_filename, self.equilibrate_output_frequency))
-        simulation.reporters.append(app.DCDReporter(equilibration_dcd_filename, self.equilibrate_output_frequency))
+        simulation.reporters.append(app.PDBReporter(equil_pdb_filename, self.equilibrate_output_frequency))
+        simulation.reporters.append(app.DCDReporter(equil_dcd_filename, self.equilibrate_output_frequency))
         simulation.step(n_equil_steps)
         del simulation
         del system
-        traj = md.load(equilibration_dcd_filename, top=equilibration_pdb_filename)
-        traj.save(equilibration_pdb_filename)
+        traj = md.load(equil_dcd_filename, top=equil_pdb_filename)
+        traj.save(equil_pdb_filename)
         
         top, bonds = traj.top.to_dataframe()
         atom_indices = top.index[top.chainID == 0].values
         traj.restrict_atoms(atom_indices)
-        traj.save(equilibration_protein_pdb_filename)
+        traj.save(equil_protein_pdb_filename)
         
         
     def production(self, ff_name, water_name):
 
-        equilibration_pdb_filename = self.get_equilibration_pdb_filename(ff_name, water_name)
+        equil_pdb_filename = self.get_equil_pdb_filename(ff_name, water_name)
         production_dcd_filename = self.get_production_dcd_filename(ff_name, water_name)
         production_protein_dcd_filename = self.get_production_protein_dcd_filename(ff_name, water_name)
         
