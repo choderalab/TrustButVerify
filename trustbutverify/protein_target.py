@@ -118,9 +118,9 @@ class ProteinTarget(Target):
         production_dcd_filename = self.get_production_dcd_filename(ff_name, water_name)
         production_protein_dcd_filename = self.get_production_protein_dcd_filename(ff_name, water_name)
         
-        utils.make_path(production_pdb_filename)
+        utils.make_path(production_dcd_filename)
 
-        if os.path.exists(production_protein_pdb_filename):
+        if os.path.exists(production_protein_dcd_filename):
             return
 
         ff = app.ForceField('%s.xml' % ff_name, '%s.xml' % water_name)
