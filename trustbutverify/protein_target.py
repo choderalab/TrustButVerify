@@ -140,7 +140,7 @@ class ProteinTarget(Target):
 
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Running.')
-        simulation.reporters.append(md.reporters.DCDReporter(dcd_filename, self.output_frequency, atomSubset=atom_indices))
-        simulation.reporters.append(app.DCDReporter(dcd_filename_allatoms, self.output_frequency_allatoms))
+        simulation.reporters.append(md.reporters.DCDReporter(production_protein_dcd_filename, self.protein_output_frequency, atomSubset=atom_indices))
+        simulation.reporters.append(app.DCDReporter(production_dcd_filename, self.output_frequency))
         simulation.step(self.n_steps)        
         
