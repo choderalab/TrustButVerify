@@ -21,6 +21,6 @@ EQUIL_OUTPUT_FREQUENCY = 5000
 PROTEIN_OUTPUT_FREQUENCY = 1000
 OUTPUT_FREQUENCY = PROTEIN_OUTPUT_FREQUENCY * 10
 
-base_path = os.path.join(os.environ["HOME"], "/dat/TrustButVerify/")
+base_path = os.path.join(os.environ["HOME"], "dat/TrustButVerify/")
 
 water_mapping = {"tip3p":"tip3p", "tip4pew":"tip4pew", "tip3p-fb":"tip3p", "tip4p-fb":"tip4pew"}  # This is a hack for OpenMM to map water models to their "base" names.
