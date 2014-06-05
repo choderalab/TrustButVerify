@@ -14,7 +14,7 @@ import utils
 class System(Target):
     def __init__(self, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equil_timestep=EQUIL_TIMESTEP, 
         barostat_frequency=BAROSTAT_FREQUENCY, friction=FRICTION, equil_friction=EQUIL_FRICTION, n_steps=N_STEPS, n_equil_steps=N_EQUIL_STEPS, equil_output_frequency=EQUIL_OUTPUT_FREQUENCY, 
-        output_frequency=OUTPUT_FREQUENCY, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY):
+        output_frequency=OUTPUT_FREQUENCY, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY, ionic_strength=None):
 
         self.padding = padding
         self.cutoff = cutoff
@@ -24,6 +24,7 @@ class System(Target):
         self.friction = friction
         self.equil_friction = equil_friction
         self.barostat_frequency = barostat_frequency
+        self.ionic_strength = ionic_strength
         
         self.n_equil_steps = n_equil_steps
         self.n_steps = n_steps
@@ -50,7 +51,7 @@ class System(Target):
         ff = app.ForceField('%s.xml' % ff_name, '%s.xml' % water_name)
         pdb = app.PDBFile(input_pdb_filename)
         modeller = app.Modeller(pdb.topology, pdb.positions)
-        modeller.addSolvent(ff, model=water_mapping[water_name], padding=self.padding)
+        modeller.addSolvent(ff, model=water_mapping[water_name], padding=self.padding, ionicStrength=self.ionic_strength)
         topology = modeller.getTopology()
         positions = modeller.getPositions()
 
