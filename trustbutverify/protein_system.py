@@ -14,7 +14,7 @@ import utils
 class System(Target):
     def __init__(self, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equil_timestep=EQUIL_TIMESTEP, 
         barostat_frequency=BAROSTAT_FREQUENCY, friction=FRICTION, equil_friction=EQUIL_FRICTION, n_steps=N_STEPS, n_equil_steps=N_EQUIL_STEPS, equil_output_frequency=EQUIL_OUTPUT_FREQUENCY, 
-        output_frequency=OUTPUT_FREQUENCY, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY, ionic_strength=None):
+        output_frequency=OUTPUT_FREQUENCY, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY, ionic_strength=0.0):
 
         self.padding = padding
         self.cutoff = cutoff
