@@ -33,7 +33,6 @@ class System(Target):
         
         self.equil_output_frequency = equil_output_frequency
         self.output_frequency = output_frequency
-        print(output_frequency)
         self.protein_output_frequency = protein_output_frequency
         
         self.temperature = temperature
