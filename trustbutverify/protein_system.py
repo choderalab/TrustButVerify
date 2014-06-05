@@ -11,13 +11,11 @@ from .simulation_parameters import *
 import utils
 
 
-class ProteinTarget(Target):
-    def __init__(self, pdb_id, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equil_timestep=EQUIL_TIMESTEP, 
+class System(Target):
+    def __init__(self, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equil_timestep=EQUIL_TIMESTEP, 
         barostat_frequency=BAROSTAT_FREQUENCY, friction=FRICTION, equil_friction=EQUIL_FRICTION, n_steps=N_STEPS, n_equil_steps=N_EQUIL_STEPS, equil_output_frequency=EQUIL_OUTPUT_FREQUENCY, 
         output_frequency=OUTPUT_FREQUENCY, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY):
-        
-        self.pdb_id = pdb_id
-        self._target_name = pdb_id
+
         self.padding = padding
         self.cutoff = cutoff
         self.pressure = pressure
@@ -35,35 +33,6 @@ class ProteinTarget(Target):
         self.protein_output_frequency = protein_output_frequency
         
         self.temperature = temperature
-        
-        if keep_chains is None:
-            keep_chains = np.arange(1)
-        
-        self.keep_chains = keep_chains
-
-
-    def build(self, ff_name, water_name):
-        out_filename = self.get_initial_pdb_filename(ff_name, water_name)
-        utils.make_path(out_filename)
-
-        if os.path.exists(out_filename):
-            return
-        
-        fixer = pdbfixer.PDBFixer(pdbid=self.pdb_id)
-
-        fixer.findMissingResidues()
-        fixer.findNonstandardResidues()
-        fixer.replaceNonstandardResidues()
-        fixer.findMissingAtoms()
-        fixer.addMissingAtoms()
-        fixer.removeHeterogens(True)
-        fixer.addMissingHydrogens()
-
-        n_chains = len(list(fixer.topology.chains()))
-        chains_to_remove = np.setdiff1d(np.arange(n_chains), self.keep_chains)
-        fixer.removeChains(chains_to_remove)
-                
-        app.PDBFile.writeFile(fixer.topology, fixer.positions, open(out_filename, 'w'))
 
 
     def equilibrate(self, ff_name, water_name):
@@ -92,11 +61,11 @@ class ProteinTarget(Target):
         simulation = app.Simulation(topology, system, integrator)
         simulation.context.setPositions(positions)
         
-        print('Minimizing...')
+        print('Minimizing.')
         simulation.minimizeEnergy()
 
         simulation.context.setVelocitiesToTemperature(self.temperature)
-        print('Running.')
+        print('Equilibrating.')
         
         simulation.reporters.append(app.PDBReporter(equil_pdb_filename, self.equil_output_frequency))
         simulation.reporters.append(app.DCDReporter(equil_dcd_filename, self.equil_output_frequency))
@@ -139,8 +108,46 @@ class ProteinTarget(Target):
         simulation.context.setPositions(pdb.positions)
 
         simulation.context.setVelocitiesToTemperature(self.temperature)
-        print('Running.')
+        print('Production.')
         simulation.reporters.append(md.reporters.DCDReporter(production_protein_dcd_filename, self.protein_output_frequency, atomSubset=atom_indices))
         simulation.reporters.append(app.DCDReporter(production_dcd_filename, self.output_frequency))
         simulation.step(self.n_steps)        
         
+
+class ProteinSystem(System):
+    def __init__(self, pdb_id, temperature, keep_chains=None, **kwargs):
+        
+        super(ProteinSystem, self).__init__(temperature, **kwargs)
+        
+        self.pdb_id = pdb_id
+        self._target_name = pdb_id
+        
+        if keep_chains is None:
+            keep_chains = np.arange(1)
+        
+        self.keep_chains = keep_chains
+
+
+    def build(self, ff_name, water_name):
+        out_filename = self.get_initial_pdb_filename(ff_name, water_name)
+        utils.make_path(out_filename)
+
+        if os.path.exists(out_filename):
+            return
+        
+        fixer = pdbfixer.PDBFixer(pdbid=self.pdb_id)
+
+        fixer.findMissingResidues()
+        fixer.findNonstandardResidues()
+        fixer.replaceNonstandardResidues()
+        fixer.findMissingAtoms()
+        fixer.addMissingAtoms()
+        fixer.removeHeterogens(True)
+        fixer.addMissingHydrogens()
+
+        n_chains = len(list(fixer.topology.chains()))
+        chains_to_remove = np.setdiff1d(np.arange(n_chains), self.keep_chains)
+        fixer.removeChains(chains_to_remove)
+                
+        app.PDBFile.writeFile(fixer.topology, fixer.positions, open(out_filename, 'w'))
+    
