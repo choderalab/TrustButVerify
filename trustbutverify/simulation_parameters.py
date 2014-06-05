@@ -13,6 +13,13 @@ BAROSTAT_FREQUENCY = 25
 EQUIL_TIMESTEP = 1.0 * u.femtoseconds
 TIMESTEP = 2.0 * u.femtoseconds
 
+N_STEPS = 10000
+N_EQUIL_STEPS = 10000
+
+EQUIL_OUTPUT_FREQUENCY = 5000
+PROTEIN_OUTPUT_FREQUENCY = 1000
+OUTPUT_FREQUENCY = PROTEIN_OUTPUT_FREQUENCY * 10
+
 base_path = "/home/kyleb/dat/TrustButVerify/"
 
 water_mapping = {"tip3p":"tip3p", "tip4pew":"tip4pew", "tip3p-fb":"tip3p", "tip4p-fb":"tip4pew"}  # This is a hack for OpenMM to map water models to their "base" names.

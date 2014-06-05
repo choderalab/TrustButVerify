@@ -1,6 +1,12 @@
 from trustbutverify import protein_target
 from simtk import unit as u
 
-target = protein_target.ProteinTarget("1am7", 300 * u.kelvin)
-target.build("amber10", "tip3p")
-target.equilibrate("amber10", "tip3p")
+ff = "amber10"
+water = "tip3p"
+pdbid = "1vii"
+temperature = 300 * u.kelvin
+
+target = protein_target.ProteinTarget(pdbid, temperature)
+target.build(ff, water)
+target.equilibrate(ff, water)
+target.production(ff, water)

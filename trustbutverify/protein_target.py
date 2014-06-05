@@ -12,7 +12,10 @@ import utils
 
 
 class ProteinTarget(Target):
-    def __init__(self, pdb_id, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equil_timestep=EQUIL_TIMESTEP, barostat_frequency=BAROSTAT_FREQUENCY, friction=FRICTION, equil_friction=EQUIL_FRICTION):
+    def __init__(self, pdb_id, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equil_timestep=EQUIL_TIMESTEP, 
+        barostat_frequency=BAROSTAT_FREQUENCY, friction=FRICTION, equil_friction=EQUIL_FRICTION, n_steps=N_STEPS, n_equil_steps=N_EQUIL_STEPS, equil_output_frequency=EQUIL_OUTPUT_FREQUENCY, 
+        output_frequency=OUTPUT_FREQUENCY, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY):
+        
         self.pdb_id = pdb_id
         self._target_name = pdb_id
         self.padding = padding
@@ -23,6 +26,13 @@ class ProteinTarget(Target):
         self.friction = friction
         self.equil_friction = equil_friction
         self.barostat_frequency = barostat_frequency
+        
+        self.n_equil_steps = n_equil_steps
+        self.n_steps = n_steps
+        
+        self.equil_output_frequency = equil_output_frequency
+        self.output_frequency = output_frequency
+        self.protein_output_frequency = protein_output_frequency
         
         self.temperature = temperature
         
@@ -90,7 +100,7 @@ class ProteinTarget(Target):
         
         simulation.reporters.append(app.PDBReporter(equil_pdb_filename, self.equilibrate_output_frequency))
         simulation.reporters.append(app.DCDReporter(equil_dcd_filename, self.equilibrate_output_frequency))
-        simulation.step(n_equil_steps)
+        simulation.step(self.n_equil_steps)
         del simulation
         del system
         traj = md.load(equil_dcd_filename, top=equil_pdb_filename)
