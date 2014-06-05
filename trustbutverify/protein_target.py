@@ -125,11 +125,11 @@ class ProteinTarget(Target):
 
         ff = app.ForceField('%s.xml' % ff_name, '%s.xml' % water_name)
         
-        traj = md.load(pdb_filename)
+        traj = md.load(equil_pdb_filename)
         top, bonds = traj.top.to_dataframe()
         atom_indices = top.index[top.chainID == 0].values
 
-        pdb = app.PDBFile(pdb_filename)
+        pdb = app.PDBFile(equil_pdb_filename)
         
         system = ff.createSystem(pdb.topology, nonbondedMethod=app.PME, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
         integrator = mm.LangevinIntegrator(self.temperature, self.friction, self.timestep)
