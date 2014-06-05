@@ -33,6 +33,7 @@ class System(Target):
         
         self.equil_output_frequency = equil_output_frequency
         self.output_frequency = output_frequency
+        print(output_frequency)
         self.protein_output_frequency = protein_output_frequency
         
         self.temperature = temperature
@@ -157,7 +158,7 @@ class ProteinSystem(System):
 
 
 class PeptideSystem(System):
-    def __init__(self, sequence, temperature, N_cap=None, C_cap=None, output_frequency=OUTPUT_FREQUENCY_PEPTIDES, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY_PEPTIDES, **kwargs):
+    def __init__(self, sequence, temperature, N_cap=None, C_cap=None, output_frequency=OUTPUT_FREQUENCY_PEPTIDES, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY_PEPTIDES, n_steps=N_STEPS_PEPTIDES, **kwargs):
         
         super(PeptideSystem, self).__init__(temperature, **kwargs)
 
