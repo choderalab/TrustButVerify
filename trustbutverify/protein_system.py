@@ -3,6 +3,7 @@ import os
 import mdtraj as md
 
 import pdbfixer
+import pdbbuilder
 from simtk.openmm import app
 import simtk.openmm as mm
 from simtk import unit as u
@@ -152,4 +153,27 @@ class ProteinSystem(System):
         fixer.removeChains(chains_to_remove)
                 
         app.PDBFile.writeFile(fixer.topology, fixer.positions, open(out_filename, 'w'))
+    
+
+
+class PeptideSystem(System):
+    def __init__(self, sequence, temperature, N_cap=None, C_cap=None, output_frequency=OUTPUT_FREQUENCY_PEPTIDES, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY_PEPTIDES, **kwargs):
+        
+        super(PeptideSystem, self).__init__(temperature, **kwargs)
+
+        self._target_name = "%s_%s_%s" % (N_cap, sequence, C_cap)
+        self.sequence = sequence
+        self.N_cap = N_cap
+        self.C_cap = C_cap
+
+
+    def build(self, ff_name, water_name):
+        out_filename = self.get_initial_pdb_filename(ff_name, water_name)
+        utils.make_path(out_filename)
+
+        if os.path.exists(out_filename):
+            return
+
+        pdbbuilder.build_pdb(self.sequence, out_filename, self.N_cap, self.C_cap)
+        
     
