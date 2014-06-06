@@ -11,13 +11,13 @@ water_models = ["tip3p", "tip3pfb", "tip4pew", "tip4pfb"]
 targets = []
 
 for aa in amino_acids:
-    targets.append(protein_system.PeptideSystem(sequence="%s" % aa, N_cap="ACE", C_cap="NME", temperature=303 * u.kelvin))
+    targets.append(protein_system.PeptideSystem(sequence="%s" % aa, N_cap="ACE", C_cap="NME", temperature=303 * u.kelvin, compute_J3HNHA=True))
 
 for aa in amino_acids_noG:
-    targets.append(protein_system.PeptideSystem(sequence="%s%s" % ("G", aa), N_cap="ACE", C_cap="NH2", temperature=298 * u.kelvin))
-    targets.append(protein_system.PeptideSystem(sequence="%s%s" % (aa, "G"), N_cap="ACE", C_cap="NH2", temperature=298 * u.kelvin))
+    targets.append(protein_system.PeptideSystem(sequence="%s%s" % ("G", aa), N_cap="ACE", C_cap="NH2", temperature=298 * u.kelvin, compute_J3HNHA=True))
+    targets.append(protein_system.PeptideSystem(sequence="%s%s" % (aa, "G"), N_cap="ACE", C_cap="NH2", temperature=298 * u.kelvin, compute_J3HNHA=True))
 
-targets.append(protein_system.ProteinSystem("1am7", temperature=293 * u.kelvin))
-targets.append(protein_system.ProteinSystem("1d3z", temperature=298 * u.kelvin, ionic_strength = 0.185 * u.molar))
-targets.append(protein_system.ProteinSystem("2evn", temperature=300 * u.kelvin, ionic_strength = 0.05 * u.molar))
+targets.append(protein_system.ProteinSystem("1am7", temperature=293 * u.kelvin, compute_shifts=True, compute_J3HNHA=True))
+targets.append(protein_system.ProteinSystem("1d3z", temperature=298 * u.kelvin, ionic_strength = 0.185 * u.molar, compute_shifts=True))
+targets.append(protein_system.ProteinSystem("2evn", temperature=300 * u.kelvin, ionic_strength = 0.05 * u.molar, compute_shifts=True))
 

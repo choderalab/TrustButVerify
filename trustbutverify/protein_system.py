@@ -114,8 +114,13 @@ class System(Target):
         print('Production.')
         simulation.reporters.append(md.reporters.DCDReporter(production_protein_dcd_filename, self.protein_output_frequency, atomSubset=atom_indices))
         simulation.reporters.append(app.DCDReporter(production_dcd_filename, self.output_frequency))
-        simulation.step(self.n_steps)        
-        
+        simulation.step(self.n_steps)
+    
+    def load(self, ff_name, water_name):
+        equil_protein_pdb_filename = self.get_equil_protein_pdb_filename(ff_name, water_name)
+        production_protein_dcd_filename = self.get_production_protein_dcd_filename(ff_name, water_name)
+        return md.load(production_protein_dcd_filename, top=equil_protein_pdb_filename)
+    
 
 class ProteinSystem(System):
     def __init__(self, pdb_id, temperature, keep_chains=None, **kwargs):
