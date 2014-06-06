@@ -1,11 +1,15 @@
 import mdtraj as md
 import numpy as np
+import pandas as pd
 import os
 from .simulation_parameters import *
 
 
 class Target(object):
-    
+    @property
+    def identifier(self):
+        return self._target_name
+
     @property
     def base_path(self):
         return base_path
@@ -62,3 +66,12 @@ class Target(object):
     def experimental(self):
         pass
 
+    def analyze(self, ff_name, water_name, analyzers_dict):
+        traj = self.load(ff_name, water_name)
+        my_analyzers = analyzers_dict[self.identifier]
+        data = pd.concat([analyzer.analyze(traj) for analyzer in my_analyzers])
+        data = data.reset_index()
+        data.rename(columns={0:"value"}, inplace=True)  # Give a name to the colum with the actual values.
+        data["ff"] = ff_name
+        data["water"] = water_name
+        return data
