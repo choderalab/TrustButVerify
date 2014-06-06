@@ -106,6 +106,10 @@ class ScalarCouplingAnalyzer(Analyzer):
 class BuzzScalarCouplingAnalyzer(ScalarCouplingAnalyzer):
     def load_expt(self):
         expt = pd.read_csv(self.data_filename, index_col=0)
+
+        aa = self.identifier.split("_")[1]
+        expt = expt.ix[[aa]]
+        
         expt["value"] = expt["coupling"]
         expt["resSeq"] = 1
         expt["system"] = self.identifier
@@ -113,7 +117,6 @@ class BuzzScalarCouplingAnalyzer(ScalarCouplingAnalyzer):
         expt = expt.set_index(["system", "expt", "resSeq"]).value
         
         expt = pd.Series(expt.values, multi_index_to_str(expt.index))
-        
         return expt
 
 
@@ -123,37 +126,32 @@ class OhScalarCouplingAnalyzer(ScalarCouplingAnalyzer):
         larger = pd.read_csv("/home/kyleb/src/choderalab/ForcefieldData/nmr/ace_x_y_nh2/data/larger_couplings.csv")
         smaller = pd.read_csv("/home/kyleb/src/choderalab/ForcefieldData/nmr/ace_x_y_nh2/data/smaller_couplings.csv")
 
-        reference = []
+        expt = []
         for aa in amino_acids:
             
             value = smaller.ix["G"][aa]
             xyz = ["G%s" % aa, 0, value]
-            reference.append(xyz)
+            expt.append(xyz)
             
             value = larger.ix["G"][aa]
             xyz = ["G%s" % aa, 1, value]
-            reference.append(xyz)
+            expt.append(xyz)
             
             value = larger.ix[aa]["G"]
             xyz = ["%sG" % aa, 0, value]
-            reference.append(xyz)
+            expt.append(xyz)
             
             value = smaller.ix[aa]["G"]
             xyz = ["%sG" % aa, 1, value]
-            reference.append(xyz)
+            expt.append(xyz)
 
-        reference = pd.DataFrame(reference, columns=["seq", "resSeq", "value"])
-        reference = reference.set_index(["seq", "resSeq"]).value
-        reference = reference.drop_duplicates()
-        return reference
-
-        expt = reference
-        expt["value"] = expt["coupling"]
-        expt["resSeq"] = 1
+        expt = pd.DataFrame(expt, columns=["seq", "resSeq", "value"])
+        seq = self.identifier.split("_")[1]
+        expt = expt[expt.seq == seq]
         expt["system"] = self.identifier
         expt["expt"] = "3JHNHA"
-        expt = x.set_index(["system", "expt", "resSeq"]).value
-        
+        expt = expt.set_index(["system", "expt", "resSeq"]).value
+        expt = expt.drop_duplicates()
         expt = pd.Series(expt.values, multi_index_to_str(expt.index))
         
         return expt
@@ -164,4 +162,4 @@ def accumulate_experiments(analyzers_dict):
     for key, analyzers in analyzers_dict.items():
         data.append(pd.concat([analyzer.load_expt() for analyzer in analyzers]))
     
-    return pd.concat(data)
+    return pd.concat(data).drop_duplicates()

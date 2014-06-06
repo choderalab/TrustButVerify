@@ -1,5 +1,5 @@
 from trustbutverify.datasets import forcefields, water_models, targets, all_analyzers
-from trustbutverify.analyzers import accumulate_experiments
+from trustbutverify.analyzers import accumulate_experiments, BuzzScalarCouplingAnalyzer, OhScalarCouplingAnalyzer
 from simtk import unit as u
 import itertools
 import pandas as pd
@@ -22,3 +22,5 @@ predictions["delta2"] = predictions["delta"] ** 2
 predictions = predictions.dropna()
 
 rms = (predictions.groupby(["ff", "water"]).delta2).mean() ** 0.5
+
+
