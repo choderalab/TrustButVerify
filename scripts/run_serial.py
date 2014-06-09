@@ -4,8 +4,6 @@ from simtk import unit as u
 import itertools
 import pandas as pd
 
-expt = accumulate_experiments(all_analyzers)
-
 for ff, water, target in itertools.product(forcefields, water_models, targets):
     print(ff, water, target.identifier)
     target.build(ff, water)
