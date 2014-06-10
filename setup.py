@@ -118,5 +118,5 @@ setup(name='trustbutverify',
       classifiers=CLASSIFIERS.splitlines(),
       packages=["trustbutverify"],
       package_dir={'trustbutverify': 'trustbutverify'},
-      package_data={'trustbutverify.datasets': ['datasets/*']},
+      #package_data={'trustbutverify.datasets': ['datasets/*']},
     )
