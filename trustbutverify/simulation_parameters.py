@@ -4,6 +4,8 @@ Default parameter values for MD simulations.
 import os
 from simtk import unit as u
 
+pH = 7.0  # Default
+
 PADDING = 1.0 * u.nanometers
 CUTOFF = 0.95 * u.nanometers
 PRESSURE = 1.0 * u.atmospheres

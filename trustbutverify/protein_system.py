@@ -16,7 +16,7 @@ import utils
 class System(Target):
     def __init__(self, temperature, padding=PADDING, cutoff=CUTOFF, keep_chains=None, pressure=PRESSURE, timestep=TIMESTEP, equil_timestep=EQUIL_TIMESTEP, 
         barostat_frequency=BAROSTAT_FREQUENCY, friction=FRICTION, equil_friction=EQUIL_FRICTION, n_steps=N_STEPS, n_equil_steps=N_EQUIL_STEPS, equil_output_frequency=EQUIL_OUTPUT_FREQUENCY, 
-        output_frequency=OUTPUT_FREQUENCY, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY, ionic_strength=0.0 * u.molar):
+        output_frequency=OUTPUT_FREQUENCY, protein_output_frequency=PROTEIN_OUTPUT_FREQUENCY, ionic_strength=0.0 * u.molar, pH=pH):
 
         self.padding = padding
         self.cutoff = cutoff
@@ -27,6 +27,7 @@ class System(Target):
         self.equil_friction = equil_friction
         self.barostat_frequency = barostat_frequency
         self.ionic_strength = ionic_strength
+        self.pH = pH
         
         self.n_equil_steps = n_equil_steps
         self.n_steps = n_steps
@@ -151,7 +152,7 @@ class ProteinSystem(System):
         fixer.findMissingAtoms()
         fixer.addMissingAtoms()
         fixer.removeHeterogens(True)
-        fixer.addMissingHydrogens()
+        fixer.addMissingHydrogens(pH=self.pH)
 
         n_chains = len(list(fixer.topology.chains()))
         chains_to_remove = np.setdiff1d(np.arange(n_chains), self.keep_chains)
@@ -179,6 +180,6 @@ class PeptideSystem(System):
         if os.path.exists(out_filename):
             return
 
-        pdbbuilder.build_pdb(self.sequence, out_filename, self.N_cap, self.C_cap)
+        pdbbuilder.build_pdb(self.sequence, out_filename, self.N_cap, self.C_cap, pH=pH)
         
     
