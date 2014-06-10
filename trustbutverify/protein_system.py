@@ -76,7 +76,7 @@ class System(Target):
         simulation.step(self.n_equil_steps)
         del simulation
         del system
-        traj = md.load(equil_dcd_filename, top=equil_pdb_filename)
+        traj = md.load(equil_dcd_filename, top=equil_pdb_filename)[-1]
         traj.save(equil_pdb_filename)
         
         top, bonds = traj.top.to_dataframe()
