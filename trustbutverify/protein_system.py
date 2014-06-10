@@ -124,12 +124,14 @@ class System(Target):
     
 
 class ProteinSystem(System):
-    def __init__(self, pdb_id, temperature, keep_chains=None, **kwargs):
+    def __init__(self, pdb_id, temperature, pdb_filename=None, keep_chains=None, **kwargs):
         
         super(ProteinSystem, self).__init__(temperature, **kwargs)
         
         self.pdb_id = pdb_id
         self._target_name = pdb_id
+        self.pdb_filename = pdb_filename
+        
         
         if keep_chains is None:
             keep_chains = np.arange(1)
@@ -144,7 +146,10 @@ class ProteinSystem(System):
         if os.path.exists(out_filename):
             return
         
-        fixer = pdbfixer.PDBFixer(pdbid=self.pdb_id)
+        if self.pdb_filename is not None:
+			fixer = pdbfixer.PDBFixer(filename=self.pdb_filename)
+		else:
+			fixer = pdbfixer.PDBFixer(pdbid=self.pdb_id)
 
         fixer.findMissingResidues()
         fixer.findNonstandardResidues()
