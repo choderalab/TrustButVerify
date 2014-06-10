@@ -114,6 +114,11 @@ class BuzzScalarCouplingAnalyzer(ScalarCouplingAnalyzer):
         expt["resSeq"] = 1
         expt["system"] = self.identifier
         expt["expt"] = "3JHNHA"
+        
+        expt.ix["H"].value = 7.76  # We're using the pH 2.9 result for HIS because that will allow us to simulate fully protonated HIS
+        # Rather than need to do a constant pH simulation near the midpoint of the HIS titration curve.
+        
+        
         expt = expt.set_index(["system", "expt", "resSeq"]).value
         
         expt = pd.Series(expt.values, multi_index_to_str(expt.index))

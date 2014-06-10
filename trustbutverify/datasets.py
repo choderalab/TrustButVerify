@@ -26,7 +26,7 @@ all_analyzers["1d3z"] = [analyzers.ChemicalShiftAnalyzer("1d3z", "/home/kyleb/sr
 all_analyzers["2evn"] = [analyzers.ChemicalShiftAnalyzer("2evn", "/home/kyleb/src/choderalab/ForcefieldData/nmr/2EVN/6338.str")]
 
 for aa in amino_acids:    
-    targets.append(protein_system.PeptideSystem(sequence="%s" % aa, N_cap="ACE", C_cap="NME", temperature=303 * u.kelvin))
+    targets.append(protein_system.PeptideSystem(sequence="%s" % aa, N_cap="ACE", C_cap="NME", temperature=303 * u.kelvin, pH=5.0))
 
 for aa in amino_acids_noG:    
     targets.append(protein_system.PeptideSystem(sequence="%s%s" % ("G", aa), N_cap="ACE", C_cap="NH2", temperature=298 * u.kelvin, pH=5.0))

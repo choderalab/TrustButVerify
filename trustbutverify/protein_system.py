@@ -185,6 +185,6 @@ class PeptideSystem(System):
         if os.path.exists(out_filename):
             return
 
-        pdbbuilder.build_pdb(self.sequence, out_filename, self.N_cap, self.C_cap, pH=pH)
+        pdbbuilder.build_pdb(self.sequence, out_filename, self.N_cap, self.C_cap, pH=self.pH)
         
     
