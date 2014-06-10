@@ -21,3 +21,4 @@ all_analyzers["1am7"].append(analyzers.ScalarCouplingAnalyzer("1am7", "/home/kyl
 all_analyzers["1d3z"] = [analyzers.ChemicalShiftAnalyzer("1d3z", "/home/kyleb/src/choderalab/ForcefieldData/nmr/ubiquitin/bmrb17439_v3.str")]
 all_analyzers["2evn"] = [analyzers.ChemicalShiftAnalyzer("2evn", "/home/kyleb/src/choderalab/ForcefieldData/nmr/2EVN/6338.str")]
 
+all_analyzers["1bpi"] = [analyzers.ChemicalShiftAnalyzer("1bpi", "/home/kyleb/src/choderalab/ForcefieldData/nmr/1BPI/4968.str")]

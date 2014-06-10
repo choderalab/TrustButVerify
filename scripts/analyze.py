@@ -9,6 +9,7 @@ expt = accumulate_experiments(all_analyzers)
 
 predictions = []
 for ff, water, target in itertools.product(forcefields, water_models, targets):
+    print(ff, water, target.identifier)
     predictions.append(target.analyze(ff, water, all_analyzers))
 
 predictions = pd.concat(predictions)

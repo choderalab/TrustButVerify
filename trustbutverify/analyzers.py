@@ -34,7 +34,23 @@ def chemical_shift_function(traj, identifier):
 
 
 class ChemicalShiftAnalyzer(Analyzer):
+    @staticmethod
+    def find_assigned_shifts(parsed):
+        for key, val in parsed.value.saves.items():
+            if "Assigned_chem_shift_list.Sf_category" in val.datums:
+                if val.datums["Assigned_chem_shift_list.Sf_category"] == "assigned_chemical_shifts":
+                    return val.loops[1]
 
+    @staticmethod
+    def old_find_assigned_shifts(parsed):
+        if "assigned_chemical_shifts" in parsed.value.saves:
+            q = parsed.value.saves["assigned_chemical_shifts"].loops[1]
+            print parsed.value.saves["assigned_chemical_shifts"].datums["Assigned_chem_shift_list.Sf_category"]
+        elif "assigned_chem_shift_list_1" in parsed.value.saves:
+            q = parsed.value.saves["assigned_chem_shift_list_1"].loops[1]
+            print parsed.value.saves["assigned_chem_shift_list_1"].datums["Assigned_chem_shift_list.Sf_category"]
+        else:
+            raise(KeyError("Can't find chemical shift assignments in BMRB file %s" % self.data_filename))        
     
     def analyze(self, traj):
         return chemical_shift_function(traj, self.identifier)
@@ -42,13 +58,8 @@ class ChemicalShiftAnalyzer(Analyzer):
     def load_expt(self):
         parsed = nmrpystar.parse(open(self.data_filename).read())
         print(parsed.status)
-        
-        if "assigned_chemical_shifts" in parsed.value.saves:
-            q = parsed.value.saves["assigned_chemical_shifts"].loops[1]
-        elif "assigned_chem_shift_list_1" in parsed.value.saves:
-            q = parsed.value.saves["assigned_chem_shift_list_1"].loops[1]
-        else:
-            raise(KeyError("Can't find chemical shift assignments in BMRB file %s" % self.data_filename))
+
+        q = ChemicalShiftAnalyzer.find_assigned_shifts(parsed)
         
         x = pd.DataFrame(q.rows, columns=q.keys)
         x = x[["Atom_chem_shift.Seq_ID", "Atom_chem_shift.Atom_ID", "Atom_chem_shift.Val"]]
@@ -108,17 +119,17 @@ class BuzzScalarCouplingAnalyzer(ScalarCouplingAnalyzer):
         expt = pd.read_csv(self.data_filename, index_col=0)
 
         aa = self.identifier.split("_")[1]
+
+        expt.ix["H"].value = 7.76  # We're using the pH 2.9 result for HIS because that will allow us to simulate fully protonated HIS
+        # Rather than need to do a constant pH simulation near the midpoint of the HIS titration curve.        
+        
         expt = expt.ix[[aa]]
         
         expt["value"] = expt["coupling"]
         expt["resSeq"] = 1
         expt["system"] = self.identifier
         expt["expt"] = "3JHNHA"
-        
-        expt.ix["H"].value = 7.76  # We're using the pH 2.9 result for HIS because that will allow us to simulate fully protonated HIS
-        # Rather than need to do a constant pH simulation near the midpoint of the HIS titration curve.
-        
-        
+
         expt = expt.set_index(["system", "expt", "resSeq"]).value
         
         expt = pd.Series(expt.values, multi_index_to_str(expt.index))
