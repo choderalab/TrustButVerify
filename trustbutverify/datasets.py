@@ -32,7 +32,7 @@ for aa in amino_acids_noG:
     targets.append(protein_system.PeptideSystem(sequence="%s%s" % ("G", aa), N_cap="ACE", C_cap="NH2", temperature=298 * u.kelvin, pH=5.0))
     targets.append(protein_system.PeptideSystem(sequence="%s%s" % (aa, "G"), N_cap="ACE", C_cap="NH2", temperature=298 * u.kelvin, pH=5.0))
 
-targets.append(protein_system.ProteinSystem("1am7", temperature=293 * u.kelvin, pdb_filename="./prepared_pdbs/1AM7_hplusplus.pdb", pH=5.45))
+targets.append(protein_system.ProteinSystem("1am7", temperature=293 * u.kelvin, pdb_filename="./prepared_pdbs/1AM7_hplusplus.pdb"))  # pH is actually 5.45, but need to use None here to make OpenMM not re-protonate.
 targets.append(protein_system.ProteinSystem("1d3z", temperature=298 * u.kelvin, ionic_strength = 0.185 * u.molar))
 targets.append(protein_system.ProteinSystem("2evn", temperature=300 * u.kelvin, ionic_strength = 0.05 * u.molar))
 
