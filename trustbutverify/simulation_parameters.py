@@ -31,5 +31,7 @@ OUTPUT_FREQUENCY_PEPTIDES = PROTEIN_OUTPUT_FREQUENCY_PEPTIDES * 10
 
 
 base_path = os.path.join(os.environ["HOME"], "dat/TrustButVerify/")
+CS_CACHE_PATH = os.path.join(base_path, "cached_chemical_shifts/")
+
 
 water_mapping = {"tip3p":"tip3p", "tip4pew":"tip4pew", "tip3pfb":"tip3p", "tip4pfb":"tip4pew"}  # This is a hack for OpenMM to map water models to their "base" names.

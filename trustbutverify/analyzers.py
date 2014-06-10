@@ -3,11 +3,11 @@ import pandas as pd
 import mdtraj as md
 import nmrpystar
 from sklearn.externals.joblib import Memory
+from .simulation_parameters import CS_CACHE_PATH
 
 amino_acids = ["R","H", "K", "D", "E", "S", "T", "N", "Q", "C", "G", "A", "I", "L", "M", "F", "W", "Y", "V"]
 
-CACHEDIR = "/home/kyleb/.cached_chemical_shifts/"
-memory = Memory(cachedir=CACHEDIR, verbose=0)
+memory = Memory(cachedir=CS_CACHE_PATH, verbose=0)
 
 
 def multi_index_to_str(multi_index):
