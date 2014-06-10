@@ -148,7 +148,7 @@ class ProteinSystem(System):
         
         if self.pdb_filename is not None:
             fixer = pdbfixer.PDBFixer(filename=self.pdb_filename)
-		else:
+        else:
             fixer = pdbfixer.PDBFixer(pdbid=self.pdb_id)
 
         fixer.findMissingResidues()
