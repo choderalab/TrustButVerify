@@ -1,4 +1,4 @@
-from trustbutverify.datasets import forcefields, water_models, targets
+from trustbutverify.simulation_targets import forcefields, water_models, targets
 from simtk import unit as u
 import itertools
 import sys

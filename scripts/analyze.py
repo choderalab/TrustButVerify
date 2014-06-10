@@ -1,5 +1,6 @@
-from trustbutverify.datasets import forcefields, water_models, targets, all_analyzers
-from trustbutverify.analyzers import accumulate_experiments, BuzzScalarCouplingAnalyzer, OhScalarCouplingAnalyzer
+from trustbutverify.simulation_targets import forcefields, water_models, targets
+from trustbutverify.analysis_targets import all_analyzers
+from trustbutverify.analyzers import accumulate_experiments
 from simtk import unit as u
 import itertools
 import pandas as pd
