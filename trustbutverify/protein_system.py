@@ -71,7 +71,7 @@ class System(Target):
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Equilibrating.')
         
-        simulation.reporters.append(app.PDBReporter(equil_pdb_filename, self.equil_output_frequency))
+        simulation.reporters.append(app.PDBReporter(equil_pdb_filename, self.n_equil_steps - 1))
         simulation.reporters.append(app.DCDReporter(equil_dcd_filename, self.equil_output_frequency))
         simulation.step(self.n_equil_steps)
         del simulation
