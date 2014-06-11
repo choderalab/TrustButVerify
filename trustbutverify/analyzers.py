@@ -50,19 +50,21 @@ class ChemicalShiftAnalyzer(Analyzer):
         prediction.rename(columns={0:"value"}, inplace=True)  # Give a name to the colum with the actual values.
         prediction["expt"] = "CS"
         prediction["system"] = self.identifier
-        
-        output = prediction.set_index(["system", "expt", "resSeq", "name"]).value
-        output = pd.Series(output.values, multi_index_to_str(output.index))
-        output = pd.DataFrame(output)
-        output.rename(columns={0:"value"}, inplace=True)  # Give a name to the colum with the actual values.
+
+
+        multi_index = prediction.set_index(["system", "expt", "resSeq", "name"]).index
+        prediction["identifier"] = multi_index_to_str(multi_index)
+        prediction = prediction.set_index("identifier")
         
         sigma_dict = pd.Series({"N":2.0862, "CA":0.7743, "CB":0.8583, "C":0.8699, "H":0.3783, "HA":0.1967})  # From http://www.shiftx2.ca/performance.html        
+        prediction["sigma"] = sigma_dict[prediction.name].values
         
-        output["expt"] = "CS"
-        output["system"] = self.identifier
-        output["sigma"] = sigma_dict[prediction.name].values
+        prediction.rename(columns={"name":"atom"}, inplace=True)  # Use a more descriptive name for the chemical shift atom name
+
+        resSeq_to_AA = top.groupby("resSeq").first().resName
+        prediction["AA"] = resSeq_to_AA[prediction.resSeq].values
         
-        return output
+        return prediction
     
     def load_expt(self):
         parsed = nmrpystar.parse(open(self.data_filename).read())
@@ -94,18 +96,15 @@ class ScalarCouplingAnalyzer(Analyzer):
         prediction = pd.DataFrame({"value":values.mean(0)})
         prediction["resSeq"] = top.ix[ind[:,-1]].resSeq.values  # Set the residue numbers to the last (fourth) atom in the dihedral
         prediction["resSeq"] -= 1  # Hack to account for the ACE residue
-        prediction["expt"] = "3JHNHA"
-        prediction["system"] = self.identifier
-        
-        prediction = prediction.set_index(["system", "expt", "resSeq"]).value
-        prediction = pd.Series(prediction.values, multi_index_to_str(prediction.index), name="value")
-        
-        prediction = pd.DataFrame(prediction)
-        
+        prediction["AA"] = top.ix[ind[:,-1]].resName.values
         prediction["expt"] = "3JHNHA"
         prediction["system"] = self.identifier
         prediction["sigma"] = 0.36
         
+        multi_index = prediction.set_index(["system", "expt", "resSeq"]).index
+        prediction["identifier"] = multi_index_to_str(multi_index)
+        prediction = prediction.set_index("identifier")
+
         return prediction        
     
 
