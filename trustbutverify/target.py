@@ -70,7 +70,7 @@ class Target(object):
         traj = self.load(ff_name, water_name)
         my_analyzers = analyzers_dict[self.identifier]
         data = pd.concat([analyzer.analyze(traj) for analyzer in my_analyzers])
-        data = data.reset_index()
+        #data = data.reset_index()
         data.rename(columns={0:"value", "index":"identifier"}, inplace=True)  # Give a name to the colum with the actual values.
         data["ff"] = ff_name
         data["water"] = water_name

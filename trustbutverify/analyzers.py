@@ -20,16 +20,8 @@ class Analyzer(object):
 
 @memory.cache
 def chemical_shift_function(traj, identifier):
-        top, bonds = traj.top.to_dataframe()
-        prediction = md.nmr.chemical_shifts_shiftx2(traj).mean(1).reset_index()  # Average over time dimensions and turn into dataframe
         
-        prediction.rename(columns={0:"value"}, inplace=True)  # Give a name to the colum with the actual values.
-        prediction["expt"] = "CS"
-        prediction["system"] = identifier
-        
-        prediction = prediction.set_index(["system", "expt", "resSeq", "name"]).value
-        prediction = pd.Series(prediction.values, multi_index_to_str(prediction.index))
-        
+        prediction = md.nmr.chemical_shifts_shiftx2(traj)
         return prediction
 
 
@@ -53,7 +45,24 @@ class ChemicalShiftAnalyzer(Analyzer):
             raise(KeyError("Can't find chemical shift assignments in BMRB file %s" % self.data_filename))        
     
     def analyze(self, traj):
-        return chemical_shift_function(traj, self.identifier)
+        prediction = chemical_shift_function(traj, self.identifier).mean(1).reset_index()  # Average over time dimensions and turn into dataframe
+        top, bonds = traj.top.to_dataframe()
+        prediction.rename(columns={0:"value"}, inplace=True)  # Give a name to the colum with the actual values.
+        prediction["expt"] = "CS"
+        prediction["system"] = self.identifier
+        
+        output = prediction.set_index(["system", "expt", "resSeq", "name"]).value
+        output = pd.Series(output.values, multi_index_to_str(output.index))
+        output = pd.DataFrame(output)
+        output.rename(columns={0:"value"}, inplace=True)  # Give a name to the colum with the actual values.
+        
+        sigma_dict = pd.Series({"N":2.0862, "CA":0.7743, "CB":0.8583, "C":0.8699, "H":0.3783, "HA":0.1967})  # From http://www.shiftx2.ca/performance.html        
+        
+        output["expt"] = "CS"
+        output["system"] = self.identifier
+        output["sigma"] = sigma_dict[prediction.name].values
+        
+        return output
     
     def load_expt(self):
         parsed = nmrpystar.parse(open(self.data_filename).read())
@@ -73,7 +82,7 @@ class ChemicalShiftAnalyzer(Analyzer):
 
         expt = x.set_index(["system", "expt", "resSeq", "name"]).value
         
-        expt = pd.Series(expt.values, multi_index_to_str(expt.index))
+        expt = pd.Series(expt.values, multi_index_to_str(expt.index), name="value")
         
         return expt
         
@@ -84,11 +93,18 @@ class ScalarCouplingAnalyzer(Analyzer):
         ind, values = md.compute_J3_HN_HA(traj)
         prediction = pd.DataFrame({"value":values.mean(0)})
         prediction["resSeq"] = top.ix[ind[:,-1]].resSeq.values  # Set the residue numbers to the last (fourth) atom in the dihedral
+        prediction["resSeq"] -= 1  # Hack to account for the ACE residue
         prediction["expt"] = "3JHNHA"
         prediction["system"] = self.identifier
         
         prediction = prediction.set_index(["system", "expt", "resSeq"]).value
-        prediction = pd.Series(prediction.values, multi_index_to_str(prediction.index))
+        prediction = pd.Series(prediction.values, multi_index_to_str(prediction.index), name="value")
+        
+        prediction = pd.DataFrame(prediction)
+        
+        prediction["expt"] = "3JHNHA"
+        prediction["system"] = self.identifier
+        prediction["sigma"] = 0.36
         
         return prediction        
     
@@ -120,7 +136,7 @@ class BuzzScalarCouplingAnalyzer(ScalarCouplingAnalyzer):
 
         aa = self.identifier.split("_")[1]
 
-        expt.ix["H"].value = 7.76  # We're using the pH 2.9 result for HIS because that will allow us to simulate fully protonated HIS
+        expt.ix["H"] = 7.76  # We're using the pH 2.9 result for HIS because that will allow us to simulate fully protonated HIS
         # Rather than need to do a constant pH simulation near the midpoint of the HIS titration curve.        
         
         expt = expt.ix[[aa]]
@@ -146,19 +162,19 @@ class OhScalarCouplingAnalyzer(ScalarCouplingAnalyzer):
         for aa in amino_acids:
             
             value = smaller.ix["G"][aa]
-            xyz = ["G%s" % aa, 0, value]
+            xyz = ["G%s" % aa, 1, value]  # Using indices 1 and 2 here: {Ace:0, X:1, Y:2, NH2:3}
             expt.append(xyz)
             
             value = larger.ix["G"][aa]
-            xyz = ["G%s" % aa, 1, value]
+            xyz = ["G%s" % aa, 2, value]
             expt.append(xyz)
             
             value = larger.ix[aa]["G"]
-            xyz = ["%sG" % aa, 0, value]
+            xyz = ["%sG" % aa, 1, value]
             expt.append(xyz)
             
             value = smaller.ix[aa]["G"]
-            xyz = ["%sG" % aa, 1, value]
+            xyz = ["%sG" % aa, 2, value]
             expt.append(xyz)
 
         expt = pd.DataFrame(expt, columns=["seq", "resSeq", "value"])
@@ -178,4 +194,4 @@ def accumulate_experiments(analyzers_dict):
     for key, analyzers in analyzers_dict.items():
         data.append(pd.concat([analyzer.load_expt() for analyzer in analyzers]))
     
-    return pd.concat(data).drop_duplicates()
+    return pd.concat(data)

@@ -14,12 +14,13 @@ for ff, water, target in itertools.product(forcefields, water_models, targets):
 
 predictions = pd.concat(predictions)
 
-predictions["expt"] = expt.ix[predictions.identifier].values
-predictions["delta"] = predictions["value"] - predictions["expt"]
-predictions["delta2"] = predictions["delta"] ** 2
+predictions["measured"] = expt.ix[predictions.index].values
+predictions["delta"] = predictions["measured"] - predictions["value"]
+predictions["z_score"] = predictions["delta"] / predictions["sigma"]
+predictions["chi2"] = predictions["z_score"] ** 2
 
 predictions = predictions.dropna()
 
-rms = (predictions.groupby(["ff", "water"]).delta2).mean() ** 0.5
-
-
+rms = (predictions.groupby(["ff", "water"]).chi2).mean() ** 0.5
+rms_by_system = ((predictions.groupby(["ff", "water", "system"]).chi2).mean() ** 0.5).reset_index().pivot_table(cols=["ff", "water"], rows="system")
+rms_by_system = ((predictions.groupby(["ff", "system"]).chi2).mean() ** 0.5).reset_index().pivot_table(cols=["ff"], rows="system")
