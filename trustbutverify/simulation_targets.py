@@ -21,4 +21,4 @@ targets.append(protein_system.ProteinSystem("1am7", temperature=293 * u.kelvin, 
 targets.append(protein_system.ProteinSystem("1d3z", temperature=298 * u.kelvin, ionic_strength = 0.185 * u.molar, pH=7.2))
 targets.append(protein_system.ProteinSystem("2evn", temperature=300 * u.kelvin, ionic_strength = 0.05 * u.molar, pH=6.0))
 targets.append(protein_system.ProteinSystem("1bpi", temperature=303 * u.kelvin, ionic_strength = 0.095 * u.molar, pH=5.8))
-
+targets.append(protein_system.ProteinSystem("2lav", temperature=298 * u.kelvin, pdb_filename="./prepared_pdbs/0.15_80_10_pH6.8_2lav.result.pdb", pH=6.8))
