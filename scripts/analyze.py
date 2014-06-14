@@ -22,6 +22,7 @@ predictions["chi2"] = predictions["z_score"] ** 2
 predictions = predictions.dropna(subset=['chi2'])  # Drop entries with no match between simulation and expt
 
 rms = (predictions.groupby(["ff", "water"]).chi2).mean() ** 0.5
+rms_by_ff_only = (predictions.groupby(["ff"]).chi2).mean() ** 0.5
 rms_by_system = ((predictions.groupby(["ff", "water", "system"]).chi2).mean() ** 0.5).reset_index().pivot_table(cols=["ff", "water"], rows="system")
 rms_by_system_water_averaged = ((predictions.groupby(["ff", "system"]).chi2).mean() ** 0.5).reset_index().pivot_table(cols=["ff"], rows="system")
 rms_by_aa = ((predictions.groupby(["ff", "AA"]).chi2).mean() ** 0.5).reset_index().pivot_table(cols=["ff"], rows=["AA"])

@@ -5,6 +5,9 @@ import nmrpystar
 from sklearn.externals.joblib import Memory
 from .simulation_parameters import CS_CACHE_PATH
 
+
+CHEMICAL_SHIFT_MODEL = "shiftx2"
+
 amino_acids = ["R","H", "K", "D", "E", "S", "T", "N", "Q", "C", "G", "A", "I", "L", "M", "F", "W", "Y", "V"]
 
 memory = Memory(cachedir=CS_CACHE_PATH, verbose=0)
@@ -18,10 +21,10 @@ class Analyzer(object):
         self.identifier = identifier
         self.data_filename = data_filename    
 
+
 @memory.cache
-def chemical_shift_function(traj, identifier):
-        
-        prediction = md.nmr.chemical_shifts_shiftx2(traj)
+def chemical_shift_function(traj, identifier, model):
+        prediction = md.compute_chemical_shifts(traj, model=model)
         return prediction
 
 
@@ -45,7 +48,7 @@ class ChemicalShiftAnalyzer(Analyzer):
             raise(KeyError("Can't find chemical shift assignments in BMRB file %s" % self.data_filename))        
     
     def analyze(self, traj):
-        prediction = chemical_shift_function(traj, self.identifier).mean(1).reset_index()  # Average over time dimensions and turn into dataframe
+        prediction = chemical_shift_function(traj, self.identifier, CHEMICAL_SHIFT_MODEL).mean(1).reset_index()  # Average over time dimensions and turn into dataframe
         top, bonds = traj.top.to_dataframe()
         prediction.rename(columns={0:"value"}, inplace=True)  # Give a name to the colum with the actual values.
         prediction["expt"] = "CS"
@@ -94,9 +97,13 @@ class ScalarCouplingAnalyzer(Analyzer):
         top, bonds = traj.top.to_dataframe()
         ind, values = md.compute_J3_HN_HA(traj)
         prediction = pd.DataFrame({"value":values.mean(0)})
-        prediction["resSeq"] = top.ix[ind[:,-1]].resSeq.values  # Set the residue numbers to the last (fourth) atom in the dihedral
-        prediction["resSeq"] -= 1  # Hack to account for the ACE residue
-        prediction["AA"] = top.ix[ind[:,-1]].resName.values
+
+        prediction["resSeq"] = top.ix[ind[:, -1]].resSeq.values  # Set the residue numbers to the last (fourth) atom in the dihedral
+        
+        if top.ix[0].resName == "ACE":
+            prediction["resSeq"] -= 1  # HARDCODED Hack to account for the ACE residue!!!!!!!!!!  Fix me later!
+        
+        prediction["AA"] = top.ix[ind[:, -1]].resName.values
         prediction["expt"] = "3JHNHA"
         prediction["system"] = self.identifier
         prediction["sigma"] = 0.36
