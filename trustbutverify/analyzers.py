@@ -7,6 +7,7 @@ from .simulation_parameters import CS_CACHE_PATH
 
 
 CHEMICAL_SHIFT_MODEL = "shiftx2"
+FIRST_FRAMES = None
 
 amino_acids = ["R","H", "K", "D", "E", "S", "T", "N", "Q", "C", "G", "A", "I", "L", "M", "F", "W", "Y", "V"]
 
@@ -48,7 +49,11 @@ class ChemicalShiftAnalyzer(Analyzer):
             raise(KeyError("Can't find chemical shift assignments in BMRB file %s" % self.data_filename))        
     
     def analyze(self, traj):
-        prediction = chemical_shift_function(traj, self.identifier, CHEMICAL_SHIFT_MODEL).mean(1).reset_index()  # Average over time dimensions and turn into dataframe
+        prediction = chemical_shift_function(traj, self.identifier, CHEMICAL_SHIFT_MODEL)
+        if FIRST_FRAMES is not None:
+            prediction = prediction.iloc[:, 0:FIRST_FRAMES]
+        
+        prediction = prediction.mean(1).reset_index()  # Average over time dimensions and turn into dataframe
         top, bonds = traj.top.to_dataframe()
         prediction.rename(columns={0:"value"}, inplace=True)  # Give a name to the colum with the actual values.
         prediction["expt"] = "CS"

@@ -30,7 +30,7 @@ OUTPUT_FREQUENCY_PEPTIDES = PROTEIN_OUTPUT_FREQUENCY_PEPTIDES * 10
 
 
 
-base_path = os.path.join(os.environ["HOME"], "dat/TrustButVerify50ns/")
+base_path = os.path.join(os.environ["HOME"], "dat/TrustButVerify/")
 CS_CACHE_PATH = os.path.join(base_path, "cached_chemical_shifts/")
 
 

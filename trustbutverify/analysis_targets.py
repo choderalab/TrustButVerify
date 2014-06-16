@@ -22,3 +22,5 @@ all_analyzers["1d3z"] = [analyzers.ChemicalShiftAnalyzer("1d3z", "/home/kyleb/sr
 all_analyzers["2evn"] = [analyzers.ChemicalShiftAnalyzer("2evn", "/home/kyleb/src/choderalab/ForcefieldData/nmr/2EVN/6338.str")]
 
 all_analyzers["1bpi"] = [analyzers.ChemicalShiftAnalyzer("1bpi", "/home/kyleb/src/choderalab/ForcefieldData/nmr/1BPI/4968.str")]
+
+all_analyzers["2lav"] = [analyzers.ChemicalShiftAnalyzer("2lav", "/home/kyleb/src/choderalab/ForcefieldData/nmr/vrk1/16715.str")]
