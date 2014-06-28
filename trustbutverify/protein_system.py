@@ -62,7 +62,7 @@ class System(Target):
         integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
-        platfrom = mm.Platform.getPlatformByName("CUDA")
+        platform = mm.Platform.getPlatformByName("CUDA")
         platform.setPropertyValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
 
         simulation = app.Simulation(topology, system, integrator, platform=platform)
@@ -113,7 +113,7 @@ class System(Target):
         integrator = mm.LangevinIntegrator(self.temperature, self.friction, self.timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
-        platfrom = mm.Platform.getPlatformByName("CUDA")
+        platform = mm.Platform.getPlatformByName("CUDA")
         platform.setPropertyValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
         
         simulation = app.Simulation(pdb.topology, system, integrator, platform=platform)
