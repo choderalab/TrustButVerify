@@ -21,7 +21,7 @@
 #PBS -V
 #
 # job name (default = name of script file)
-#PBS -N myjob
+#PBS -N Trust But Verify
 #
 # specify email for notifications
 #PBS -M kyleabeauchamp@gmail.com
