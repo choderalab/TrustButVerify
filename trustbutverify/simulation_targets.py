@@ -5,7 +5,7 @@ import itertools
 amino_acids = ["R","H", "K", "D", "E", "S", "T", "N", "Q", "C", "G", "A", "I", "L", "M", "F", "W", "Y", "V"]
 amino_acids_noG = ["R","H", "K", "D", "E", "S", "T", "N", "Q", "C", "A", "I", "L", "M", "F", "W", "Y", "V"]
 
-forcefields = ["amber99sbnmr", "amber99sbildn", "amber03", "amber96"]
+forcefields = ["amber99sbnmr", "amber99sbildn", "amber03", "amber96", "a99sb-v2-r1"]
 water_models = ["tip3p", "tip3pfb", "tip4pew", "tip4pfb"]
 
 targets = []

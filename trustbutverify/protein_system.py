@@ -62,7 +62,10 @@ class System(Target):
         integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
-        simulation = app.Simulation(topology, system, integrator)
+        platfrom = mm.Platform.getPlatformByName("CUDA")
+        platform.setPropertyValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
+
+        simulation = app.Simulation(topology, system, integrator, platform=platform)
         simulation.context.setPositions(positions)
         
         print('Minimizing.')
@@ -104,11 +107,16 @@ class System(Target):
 
         pdb = app.PDBFile(equil_pdb_filename)
         
+        
+        
         system = ff.createSystem(pdb.topology, nonbondedMethod=app.PME, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
         integrator = mm.LangevinIntegrator(self.temperature, self.friction, self.timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
-        simulation = app.Simulation(pdb.topology, system, integrator)
+        platfrom = mm.Platform.getPlatformByName("CUDA")
+        platform.setPropertyValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
+        
+        simulation = app.Simulation(pdb.topology, system, integrator, platform=platform)
         simulation.context.setPositions(pdb.positions)
 
         simulation.context.setVelocitiesToTemperature(self.temperature)
