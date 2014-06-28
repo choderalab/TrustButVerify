@@ -6,7 +6,7 @@ import sys
 rank = int(sys.argv[1])
 
 for k, (ff, water, target) in enumerate(itertools.product(forcefields, water_models, targets)):
-
+    print(k, ff, water, target.identifier)
     if k != rank:
         continue
 
