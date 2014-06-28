@@ -63,7 +63,7 @@ class System(Target):
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
         platform = mm.Platform.getPlatformByName("CUDA")
-        platform.setPropertyValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
+        platform.setPropertyDefaultValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
 
         simulation = app.Simulation(topology, system, integrator, platform=platform)
         simulation.context.setPositions(positions)
@@ -114,7 +114,7 @@ class System(Target):
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
         platform = mm.Platform.getPlatformByName("CUDA")
-        platform.setPropertyValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
+        platform.setPropertyDefaultValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
         
         simulation = app.Simulation(pdb.topology, system, integrator, platform=platform)
         simulation.context.setPositions(pdb.positions)
