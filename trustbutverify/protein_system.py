@@ -37,6 +37,7 @@ class System(Target):
         self.protein_output_frequency = protein_output_frequency
         
         self.temperature = temperature
+        self.platform = utils.get_platform()
 
 
     def equilibrate(self, ff_name, water_name):
