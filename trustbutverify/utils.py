@@ -16,7 +16,7 @@ def get_platform():
             device_index = os.environ[key]
         else:
             device_index = 0
-        platform.setPropertyDefaultValue("CudaDeviceIndex", device_index)            
+        platform.setPropertyDefaultValue("CudaDeviceIndex", "%d" % device_index)
     except:
         platform = mm.Platform.getPlatformByName("CPU")
 
