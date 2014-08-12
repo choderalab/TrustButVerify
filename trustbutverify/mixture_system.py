@@ -37,7 +37,10 @@ class MixtureSystem(System):
         
         self.monomer_trajectories = []
         self.pdb_filenames = []
-        ligand_trajectories, self.ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml(self.smiles_strings)    
+        
+        with gaff2xml.utils.enter_temp_directory():  # Avoid dumping 50 antechamber files in local directory.
+            ligand_trajectories, self.ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml(self.smiles_strings)    
+        
         for k, ligand_traj in enumerate(ligand_trajectories):
             pdb_filename = tempfile.mktemp(suffix=".pdb")
             ligand_traj.save(pdb_filename)
