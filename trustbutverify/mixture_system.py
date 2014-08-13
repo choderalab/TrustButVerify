@@ -11,13 +11,15 @@ from simtk import unit as u
 
 from .target import Target
 from .simulation_parameters import *
+from .cirpy import resolve 
 import utils
 
 from protein_system import System
 import gaff2xml
+import cStringIO
+import itertools
 
-
-N_STEPS_MIXTURES = 500000 # 1ns
+N_STEPS_MIXTURES = 100000 # 0.2ns
 N_EQUIL_STEPS_MIXTURES = 100000 # 0.1ns
 OUTPUT_FREQUENCY_MIXTURES = 500
 
@@ -28,18 +30,18 @@ class MixtureSystem(System):
         self._main_dir = os.getcwd()
         
         self.cas_strings = cas_strings
-        self.smiles_strings = smiles_strings
-        self.n_monomers = n_monomers
+        self.smiles_strings = []
+        for mlc in cas_strings:
+            self.smiles_strings.append(resolve(mlc, 'smiles'))
 
-        self._target_name = '_'.join(cas_strings) # how to add the n_monomers and temperature in too?
+        self.n_monomers = n_monomers
+        identifier = list(itertools.chain(cas_strings)) # this is formatted completely incorrectly but will prevent overwrite for now
+        self._target_name = '_'.join(identifier)
 
     def build(self):
-        if not os.path.exists('monomers/'):
-            os.system('mkdir monomers')
-        if not os.path.exists('boxes/'):
-            os.system('mkdir boxes')
-        if not os.path.exists('ffxml/'):
-            os.system('mkdir ffxml')
+        utils.make_path('monomers/')
+        utils.make_path('boxes/')
+        utils.make_path('ffxml/')
         self.monomer_pdb_filenames = ["monomers/"+string+".pdb" for string in self.cas_strings]
         self.box_pdb_filename = "boxes/" + self.identifier + ".pdb"
         self.ffxml_filename = "ffxml/" + '_'.join(self.cas_strings) + ".xml"
@@ -66,15 +68,17 @@ class MixtureSystem(System):
                 pdb_filename = self.monomer_pdb_filenames[k] # so I can do this?
                 ligand_traj.save(pdb_filename)
         else:
-            self.ffxml = app.ForceField(self.ffxml_filename)
+            fid = open(self.ffxml_filename,'r')
+            self.ffxml = cStringIO.StringIO()
+            self.ffxml.write(fid.read())
+            fid.close()
 
         self.packed_trj = gaff2xml.packmol.pack_box(self.monomer_pdb_filenames, self.n_monomers)
         self.packed_trj.save(self.box_pdb_filename)
         
         
     def equilibrate(self):
-        if not os.path.exists('equil/'):
-            os.system('mkdir equil')
+        utils.make_path('equil/')
         self.equil_dcd_filename = "equil/"+self.identifier +"_equil.dcd"
         self.equil_pdb_filename = "equil/"+self.identifier +"_equil.pdb"
         utils.make_path(self.equil_pdb_filename)
@@ -111,8 +115,7 @@ class MixtureSystem(System):
 
 
     def production(self):
-        if not os.path.exists('production/'):
-            os.system('mkdir production')
+        utils.make_path('production/')
         self.production_dcd_filename = "production/"+self.identifier +"_production.dcd"        
 
         utils.make_path(self.production_dcd_filename)
