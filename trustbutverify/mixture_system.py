@@ -24,7 +24,7 @@ N_EQUIL_STEPS_MIXTURES = 100000 # 0.1ns
 OUTPUT_FREQUENCY_MIXTURES = 500
 
 class MixtureSystem(System):
-    def __init__(self, cas_strings, smiles_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
+    def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
         super(MixtureSystem, self).__init__(temperature=temperature, pressure=pressure, output_frequency=output_frequency, n_steps=n_steps, equil_output_frequency=equil_output_frequency, **kwargs)
 
         self._main_dir = os.getcwd()
