@@ -56,21 +56,18 @@ class MixtureSystem(System):
 
         if rungaff:
             with gaff2xml.utils.enter_temp_directory():  # Avoid dumping 50 antechamber files in local directory.
-                ligand_trajectories, self.ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml(self.smiles_strings)    
+                ligand_trajectories, ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml(self.smiles_strings)    
             if not os.path.exists(self.ffxml_filename):
                 outfile = open(self.ffxml_filename, 'w')
-                outfile.write(self.ffxml.read())
+                outfile.write(ffxml.read())
                 outfile.close()
                 self.ffxml.seek(0)
 
             for k, ligand_traj in enumerate(ligand_trajectories): # will the ligand trajectories always be in the same order as the smiles_strings? yes, right?
                 pdb_filename = self.monomer_pdb_filenames[k] # so I can do this?
                 ligand_traj.save(pdb_filename)
-        else:
-            fid = open(self.ffxml_filename,'r')
-            self.ffxml = cStringIO.StringIO()
-            self.ffxml.write(fid.read())
-            fid.close()
+
+        self.ffxml = app.ForceField(self.ffxml_filename)
 
         self.packed_trj = gaff2xml.packmol.pack_box(self.monomer_pdb_filenames, self.n_monomers)
         self.packed_trj.save(self.box_pdb_filename)
@@ -83,14 +80,13 @@ class MixtureSystem(System):
         utils.make_path(self.equil_pdb_filename)
         
         if os.path.exists(self.equil_pdb_filename):
-            pass
+            return
 
         positions = self.packed_trj.openmm_positions(0)
         topology = self.packed_trj.top.to_openmm()
         topology.setUnitCellDimensions(mm.Vec3(*self.packed_trj.unitcell_lengths[0]) * u.nanometer)
         
-        self.ffxml.seek(0)
-        ff = app.ForceField(self.ffxml)
+        ff = self.ffxml
 
         system = ff.createSystem(topology, nonbondedMethod=app.PME, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
         integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
@@ -122,7 +118,7 @@ class MixtureSystem(System):
         utils.make_path(self.production_dcd_filename)
 
         if os.path.exists(self.production_dcd_filename):
-            pass
+            return
         
         self.ffxml.seek(0)
         ff = app.ForceField(self.ffxml)
