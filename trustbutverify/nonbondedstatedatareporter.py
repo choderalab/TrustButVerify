@@ -141,7 +141,9 @@ class NonbondedStateDataReporter(object):
          - simulation (Simulation) The Simulation to generate a report for
          - state (State) The current state of the simulation
         """
-        simulation.system.getForce(3).setForceGroup(1)
+        for force in simulation.system.getForces():
+            if str(force.__class__) == "<class 'simtk.openmm.openmm.NonbondedForce'>":
+                force.setForceGroup(1)
         state = simulation.context.getState(getPositions=True, getVelocities=True, getForces=True, getEnergy=True, getParameters=True, enforcePeriodicBox=True, groups=1)
         if not self._hasInitialized:
             self._initializeConstants(simulation)
