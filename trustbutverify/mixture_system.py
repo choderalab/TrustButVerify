@@ -3,8 +3,6 @@ import numpy as np
 import os
 import mdtraj as md
 
-import pdbfixer
-#import pdbbuilder
 from simtk.openmm import app
 import simtk.openmm as mm
 from simtk import unit as u
@@ -13,6 +11,7 @@ from .target import Target
 from .simulation_parameters import *
 from .cirpy import resolve 
 import utils
+from .nonbondedstatedatareporter import NonbondedStateDataReporter
 
 from protein_system import System
 import gaff2xml
@@ -35,7 +34,7 @@ class MixtureSystem(System):
             self.smiles_strings.append(resolve(mlc, 'smiles'))
 
         self.n_monomers = n_monomers
-        identifier = list(itertools.chain(cas_strings)) # this is formatted completely incorrectly but will prevent overwrite for now
+        identifier = list(itertools.chain(cas_strings, [str(n) for n in n_monomers], [str(temperature).split(' ')[0]]))
         self._target_name = '_'.join(identifier)
 
     def build(self):
@@ -116,7 +115,9 @@ class MixtureSystem(System):
 
     def production(self):
         utils.make_path('production/')
-        self.production_dcd_filename = "production/"+self.identifier +"_production.dcd"        
+        self.production_dcd_filename = "production/"+self.identifier +"_production.dcd"
+        self.production_pdb_filename = "production/"+self.identifier +"_production.pdb"
+        self.production_data_filename = "production/"+self.identifier +"_production.dat"        
 
         utils.make_path(self.production_dcd_filename)
 
@@ -138,4 +139,8 @@ class MixtureSystem(System):
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Production.')
         simulation.reporters.append(app.DCDReporter(self.production_dcd_filename, self.output_frequency))
+        simulation.reporters.append(NonbondedStateDataReporter(self.production_data_filename, self.output_frequency, step=True, potentialEnergy=True, temperature=True, density=True))
         simulation.step(self.n_steps)
+
+        traj = md.load(self.production_dcd_filename, top=self.equil_pdb_filename)[-1]
+        traj.save(self.production_pdb_filename)
