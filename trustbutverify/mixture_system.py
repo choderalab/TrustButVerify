@@ -120,8 +120,7 @@ class MixtureSystem(System):
         if os.path.exists(self.production_dcd_filename):
             return
         
-        self.ffxml.seek(0)
-        ff = app.ForceField(self.ffxml)
+        ff = self.ffxml
         
         pdb = app.PDBFile(self.equil_pdb_filename)
         
