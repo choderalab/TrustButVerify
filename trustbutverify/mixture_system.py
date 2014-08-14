@@ -18,7 +18,7 @@ import gaff2xml
 import cStringIO
 import itertools
 
-N_STEPS_MIXTURES = 100000 # 0.2ns
+N_STEPS_MIXTURES = 25000 # 50 ps
 N_EQUIL_STEPS_MIXTURES = 100000 # 0.1ns
 OUTPUT_FREQUENCY_MIXTURES = 500
 
@@ -61,7 +61,7 @@ class MixtureSystem(System):
                 outfile = open(self.ffxml_filename, 'w')
                 outfile.write(ffxml.read())
                 outfile.close()
-                self.ffxml.seek(0)
+                ffxml.seek(0)
 
             for k, ligand_traj in enumerate(ligand_trajectories): # will the ligand trajectories always be in the same order as the smiles_strings? yes, right?
                 pdb_filename = self.monomer_pdb_filenames[k] # so I can do this?

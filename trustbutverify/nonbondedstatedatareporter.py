@@ -145,6 +145,7 @@ class NonbondedStateDataReporter(object):
             if str(force.__class__) == "<class 'simtk.openmm.openmm.NonbondedForce'>":
                 force.setForceGroup(1)
         state = simulation.context.getState(getPositions=True, getVelocities=True, getForces=True, getEnergy=True, getParameters=True, enforcePeriodicBox=True, groups=1)
+        statetot = simulation.context.getState(getEnergy=True)
         if not self._hasInitialized:
             self._initializeConstants(simulation)
             headers = self._constructHeaders()
@@ -162,7 +163,7 @@ class NonbondedStateDataReporter(object):
         self._checkForErrors(simulation, state)
 
         # Query for the values
-        values = self._constructReportValues(simulation, state)
+        values = self._constructReportValues(simulation, state, statetot)
 
         # Write the values.
         print >>self._out, self._separator.join(str(v) for v in values)
@@ -171,7 +172,7 @@ class NonbondedStateDataReporter(object):
         except AttributeError:
             pass
 
-    def _constructReportValues(self, simulation, state):
+    def _constructReportValues(self, simulation, state, statetot):
         """Query the simulation for the current state of our observables of interest.
 
         Parameters:
@@ -194,10 +195,13 @@ class NonbondedStateDataReporter(object):
             values.append(state.getTime().value_in_unit(unit.picosecond))
         if self._potentialEnergy:
             values.append(state.getPotentialEnergy().value_in_unit(unit.kilojoules_per_mole))
+            values.append(statetot.getPotentialEnergy().value_in_unit(unit.kilojoules_per_mole))
         if self._kineticEnergy:
             values.append(state.getKineticEnergy().value_in_unit(unit.kilojoules_per_mole))
+            values.append(statetot.getKineticEnergy().value_in_unit(unit.kilojoules_per_mole))
         if self._totalEnergy:
             values.append((state.getKineticEnergy()+state.getPotentialEnergy()).value_in_unit(unit.kilojoules_per_mole))
+            values.append((statetot.getKineticEnergy()+state.getPotentialEnergy()).value_in_unit(unit.kilojoules_per_mole))
         if self._temperature:
             values.append((2*state.getKineticEnergy()/(self._dof*unit.MOLAR_GAS_CONSTANT_R)).value_in_unit(unit.kelvin))
         if self._volume:
@@ -276,10 +280,13 @@ class NonbondedStateDataReporter(object):
             headers.append('Time (ps)')
         if self._potentialEnergy:
             headers.append('Nonbonded Potential Energy (kJ/mole)')
+            headers.append('Total Potential Energy (kJ/mole)')
         if self._kineticEnergy:
             headers.append('Nonbonded Kinetic Energy (kJ/mole)')
+            headers.append('Total Kinetic Energy (kJ/mole)')
         if self._totalEnergy:
             headers.append('Nonbonded Total Energy (kJ/mole)')
+            headers.append('Total Energy (kJ/mole)')
         if self._temperature:
             headers.append('Temperature (K)')
         if self._volume:
