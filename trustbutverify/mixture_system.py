@@ -63,15 +63,17 @@ class MixtureSystem(System):
                 outfile.close()
                 ffxml.seek(0)
 
-            for k, ligand_traj in enumerate(ligand_trajectories): # will the ligand trajectories always be in the same order as the smiles_strings? yes, right?
-                pdb_filename = self.monomer_pdb_filenames[k] # so I can do this?
+            for k, ligand_traj in enumerate(ligand_trajectories):
+                pdb_filename = self.monomer_pdb_filenames[k]
                 ligand_traj.save(pdb_filename)
 
         self.ffxml = app.ForceField(self.ffxml_filename)
 
-        self.packed_trj = gaff2xml.packmol.pack_box(self.monomer_pdb_filenames, self.n_monomers)
-        self.packed_trj.save(self.box_pdb_filename)
-        
+        if not os.path.exists(self.box_pdb_filename):
+            self.packed_trj = gaff2xml.packmol.pack_box(self.monomer_pdb_filenames, self.n_monomers)
+            self.packed_trj.save(self.box_pdb_filename)
+        else:
+            self.packed_trj = md.load(self.box_pdb_filename)
         
     def equilibrate(self):
         utils.make_path('equil/')
