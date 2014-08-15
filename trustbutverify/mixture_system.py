@@ -18,8 +18,8 @@ import gaff2xml
 import cStringIO
 import itertools
 
-N_STEPS_MIXTURES = 25000 # 50 ps
-N_EQUIL_STEPS_MIXTURES = 100000 # 0.1ns
+N_STEPS_MIXTURES = 25000000 # 50 ns
+N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
 OUTPUT_FREQUENCY_MIXTURES = 500
 
 class MixtureSystem(System):
