@@ -18,7 +18,7 @@ import gaff2xml
 import cStringIO
 import itertools
 
-N_STEPS_MIXTURES = 25000000 # 50 ns
+N_STEPS_MIXTURES = 500 #25000000 # 50 ns
 N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
 OUTPUT_FREQUENCY_MIXTURES = 500
 
@@ -62,10 +62,26 @@ class MixtureSystem(System):
                 outfile.write(ffxml.read())
                 outfile.close()
                 ffxml.seek(0)
-
+            ff = app.ForceField(ffxml)
             for k, ligand_traj in enumerate(ligand_trajectories):
+                pos = ligand_traj.openmm_positions(0)
+                top = ligand_traj.top.to_openmm()
+                ligand_traj.unitcell_vectors = np.array([np.eye(3)])
+                top.setUnitCellDimensions(mm.Vec3(*ligand_traj.unitcell_lengths[0]) * u.nanometer)
+                system = ff.createSystem(top, nonbondedMethod=app.NoCutoff, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
+                integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
+                simulation = app.Simulation(top, system, integrator, platform=self.platform)
+                simulation.context.setPositions(pos)
+                print('Minimizing Single Molecule')
+                simulation.minimizeEnergy()
+                simulation.context.setVelocitiesToTemperature(self.temperature)
+                with gaff2xml.utils.enter_temp_directory():
+                    ligand_traj.save("initial_top.pdb")
+                    simulation.reporters.append(app.DCDReporter("initial_equil.dcd", 50))
+                    simulation.step(500)
+                    ligand_traj = md.load("./initial_equil.dcd", top="./initial_top.pdb")[-1]
                 pdb_filename = self.monomer_pdb_filenames[k]
-                if not os.path.exists(pdb_filename): 
+                if not os.path.exists(pdb_filename):
                     ligand_traj.save(pdb_filename)
 
         self.ffxml = app.ForceField(self.ffxml_filename)
