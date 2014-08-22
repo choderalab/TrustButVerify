@@ -65,7 +65,8 @@ class MixtureSystem(System):
 
             for k, ligand_traj in enumerate(ligand_trajectories):
                 pdb_filename = self.monomer_pdb_filenames[k]
-                ligand_traj.save(pdb_filename)
+                if not os.path.exists(pdb_filename): 
+                    ligand_traj.save(pdb_filename)
 
         self.ffxml = app.ForceField(self.ffxml_filename)
 
