@@ -15,6 +15,7 @@ from .nonbondedstatedatareporter import NonbondedStateDataReporter
 
 from protein_system import System
 import gaff2xml
+import cStringIO
 import itertools
 
 N_STEPS_MIXTURES = 500 #25000000 # 50 ns
@@ -22,7 +23,7 @@ N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
 OUTPUT_FREQUENCY_MIXTURES = 499 #500
 
 class MixtureSystem(System):
-    def __init__(self, cas_strings, n_monomers, temperature, water=False, n_water=0, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
+    def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
         super(MixtureSystem, self).__init__(temperature=temperature, pressure=pressure, output_frequency=output_frequency, n_steps=n_steps, equil_output_frequency=equil_output_frequency, **kwargs)
 
         self._main_dir = os.getcwd()
@@ -31,13 +32,9 @@ class MixtureSystem(System):
         self.smiles_strings = []
         for mlc in cas_strings:
             self.smiles_strings.append(resolve(mlc, 'smiles'))
-        self.water = water
-        self.n_water = n_water
+
         self.n_monomers = n_monomers
-        if water:
-            identifier = list(itertools.chain(["water"], [str(n_water)], cas_strings, [str(n) for n in n_monomers], [str(temperature).split(' ')[0]]))
-        else:
-            identifier = list(itertools.chain(cas_strings, [str(n) for n in n_monomers], [str(temperature).split(' ')[0]]))
+        identifier = list(itertools.chain(cas_strings, [str(n) for n in n_monomers], [str(temperature).split(' ')[0]]))
         self._target_name = '_'.join(identifier)
 
     def build(self):
@@ -71,16 +68,6 @@ class MixtureSystem(System):
                     ligand_traj.save(pdb_filename)
 
         self.ffxml = app.ForceField(self.ffxml_filename)
-
-        if self.water:
-            self.ffxml.loadFile("tip3p.xml") # not universal
-            water_pdb = "monomers/water.pdb"
-            if not os.path.exists(water_pdb):
-                with gaff2xml.utils.enter_temp_directory():
-                    water_trajectory, gaff_water_ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml("O")
-                water_trajectory[0].save(water_pdb)
-            self.monomer_pdb_filenames.append(water_pdb)
-            self.n_monomers.append(self.n_water)
 
         if not os.path.exists(self.box_pdb_filename):
             self.packed_trj = gaff2xml.packmol.pack_box(self.monomer_pdb_filenames, self.n_monomers)
