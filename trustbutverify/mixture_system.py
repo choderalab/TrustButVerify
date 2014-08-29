@@ -69,6 +69,9 @@ class MixtureSystem(System):
 
         self.ffxml = app.ForceField(self.ffxml_filename)
 
+        if "7732-18-5" in self.cas_strings:
+            self.ffxml.loadFile("tip3p.xml")
+
         if not os.path.exists(self.box_pdb_filename):
             self.packed_trj = gaff2xml.packmol.pack_box(self.monomer_pdb_filenames, self.n_monomers)
             self.packed_trj.save(self.box_pdb_filename)
