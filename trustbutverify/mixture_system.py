@@ -15,10 +15,9 @@ from .nonbondedstatedatareporter import NonbondedStateDataReporter
 
 from protein_system import System
 import gaff2xml
-import cStringIO
 import itertools
 
-N_STEPS_MIXTURES = 500 #25000000 # 50 ns
+N_STEPS_MIXTURES = 25000000 # 50 ns
 N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
 OUTPUT_FREQUENCY_MIXTURES = 499 #500
 
@@ -48,7 +47,7 @@ class MixtureSystem(System):
         utils.make_path(self.box_pdb_filename)
 
         rungaff = False
-        if not os.path.exists(self.ffxml_filename):
+        if not os.path.exists(self.ffxml_filename):     
             rungaff = True
         for filename in self.monomer_pdb_filenames:
             if not os.path.exists(filename):
@@ -132,7 +131,7 @@ class MixtureSystem(System):
 
         utils.make_path(self.production_dcd_filename)
 
-        if os.path.exists(self.production_dcd_filename):
+        if os.path.exists(self.production_pdb_filename):
             return
         
         ff = self.ffxml
