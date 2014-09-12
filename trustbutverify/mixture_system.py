@@ -28,9 +28,6 @@ class MixtureSystem(System):
         self._main_dir = os.getcwd()
         
         self.cas_strings = cas_strings
-        self.smiles_strings = []
-        for mlc in cas_strings:
-            self.smiles_strings.append(resolve(mlc, 'smiles'))
 
         self.n_monomers = n_monomers
         identifier = list(itertools.chain(cas_strings, [str(n) for n in n_monomers], [str(temperature).split(' ')[0]]))
@@ -54,6 +51,9 @@ class MixtureSystem(System):
                 rungaff = True
 
         if rungaff:
+            self.smiles_strings = []
+            for mlc in cas_strings:
+                self.smiles_strings.append(resolve(mlc, 'smiles'))
             with gaff2xml.utils.enter_temp_directory():  # Avoid dumping 50 antechamber files in local directory.
                 ligand_trajectories, ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml(self.smiles_strings)    
             if not os.path.exists(self.ffxml_filename):
