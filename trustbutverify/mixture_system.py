@@ -17,23 +17,26 @@ from protein_system import System
 import gaff2xml
 import itertools
 
-N_STEPS_MIXTURES = 25000000 # 50 ns
+from pymbar import timeseries as ts
+import pandas as pd
+
+N_STEPS_MIXTURES = 500000 # 1 ns (at a time)
 N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
 OUTPUT_FREQUENCY_MIXTURES = 5000 # 10ps
 OUTPUT_DATA_FREQUENCY_MIXTURES = 125 # 0.25ps
+STD_ERROR_TOLERANCE = 0.0001 # g/mL
 
 class MixtureSystem(System):
-    def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, output_data_frequency=OUTPUT_DATA_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
+    def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, output_data_frequency=OUTPUT_DATA_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, stderr_tolerance = STD_ERROR_TOLERANCE, **kwargs):
         super(MixtureSystem, self).__init__(temperature=temperature, pressure=pressure, output_frequency=output_frequency, n_steps=n_steps, equil_output_frequency=equil_output_frequency, **kwargs)
 
         self._main_dir = os.getcwd()
-        
         self.cas_strings = cas_strings
-
         self.n_monomers = n_monomers
         identifier = list(itertools.chain(cas_strings, [str(n) for n in n_monomers], [str(temperature).split(' ')[0]]))
         self._target_name = '_'.join(identifier)
         self.output_data_frequency = output_data_frequency
+        self.stderr_tolerance = stderr_tolerance
 
     def build(self):
         utils.make_path('monomers/')
@@ -78,15 +81,18 @@ class MixtureSystem(System):
             self.packed_trj.save(self.box_pdb_filename)
         else:
             self.packed_trj = md.load(self.box_pdb_filename)
-        
-    def equilibrate(self):
-        utils.make_path('equil/')
-        self.equil_dcd_filename = "equil/"+self.identifier +"_equil.dcd"
-        self.equil_pdb_filename = "equil/"+self.identifier +"_equil.pdb"
-        utils.make_path(self.equil_pdb_filename)
-        
-        if os.path.exists(self.equil_pdb_filename):
-            return
+
+
+    def production(self):  
+        utils.make_path('production/')
+        self.production_dcd_filename = "production/"+self.identifier +"_production.dcd"
+        self.production_pdb_filename = "production/"+self.identifier +"_production.pdb"
+        self.production_data_filename = "production/"+self.identifier +"_production.dat"
+
+        utils.make_path(self.production_dcd_filename)
+
+        if os.path.exists(self.production_pdb_filename):
+            return        
 
         positions = self.packed_trj.openmm_positions(0)
         topology = self.packed_trj.top.to_openmm()
@@ -95,63 +101,30 @@ class MixtureSystem(System):
         ff = self.ffxml
 
         system = ff.createSystem(topology, nonbondedMethod=app.PME, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
-        integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep/10.)
+        integrator = mm.LangevinIntegrator(self.temperature, self.friction, self.timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
         simulation = app.Simulation(topology, system, integrator, platform=self.platform)
         simulation.context.setPositions(positions)
-        
+
         print('Minimizing.')
         simulation.minimizeEnergy()
-
-        simulation.context.setVelocitiesToTemperature(self.temperature)
-        print('Equilibrating.')
-
-        simulation.step(1000)
-        
-        simulation.integrator.setStepSize(self.equil_timestep/5.0)
-        simulation.step(1000)
-
-        simulation.integrator.setStepSize(self.equil_timestep/2.0)
-        simulation.step(1000)
-
-        simulation.reporters.append(app.DCDReporter(self.equil_dcd_filename, self.equil_output_frequency))
-        simulation.integrator.setStepSize(self.equil_timestep)
-        simulation.step(self.n_equil_steps)
-
-
-        # Re-write a better PDB with correct box sizes.
-        traj = md.load(self.equil_dcd_filename, top=self.box_pdb_filename)[-1]
-        traj.save(self.equil_pdb_filename)
-
-
-    def production(self):
-        utils.make_path('production/')
-        self.production_dcd_filename = "production/"+self.identifier +"_production.dcd"
-        self.production_pdb_filename = "production/"+self.identifier +"_production.pdb"
-        self.production_data_filename = "production/"+self.identifier +"_production.dat"        
-
-        utils.make_path(self.production_dcd_filename)
-
-        if os.path.exists(self.production_pdb_filename):
-            return
-        
-        ff = self.ffxml
-        
-        pdb = app.PDBFile(self.equil_pdb_filename)
-        
-        system = ff.createSystem(pdb.topology, nonbondedMethod=app.PME, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
-        integrator = mm.LangevinIntegrator(self.temperature, self.friction, self.timestep)
-        system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
-
-        simulation = app.Simulation(pdb.topology, system, integrator, platform=self.platform)
-        simulation.context.setPositions(pdb.positions)
 
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Production.')
         simulation.reporters.append(app.DCDReporter(self.production_dcd_filename, self.output_frequency))
         simulation.reporters.append(NonbondedStateDataReporter(self.production_data_filename, self.output_data_frequency, step=True, potentialEnergy=True, temperature=True, density=True))
-        simulation.step(self.n_steps)
+
+        converged = False
+        while not converged:
+            simulation.step(self.n_steps)
+            d = pd.read_csv(self.production_data_filename, names=["step", "U_NB", "U", "Temperature", "Density"], skiprows=1)
+            density_ts = np.array(d.Density)
+            [t0, g, Neff] = ts.detectEquilibration(density_ts, nskip=1000)
+            density_ts = density_ts[t0:]
+            density_mean_stderr = density_ts.std() / np.sqrt(Neff)
+            if density_mean_stderr < self.stderr_tolerance:
+                converged = True
 
         del(simulation)
         print(os.path.exists(self.production_dcd_filename))
