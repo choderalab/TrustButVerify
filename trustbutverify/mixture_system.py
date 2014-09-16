@@ -57,7 +57,7 @@ class MixtureSystem(System):
 
         if rungaff:
             self.smiles_strings = []
-            for mlc in cas_strings:
+            for mlc in self.cas_strings:
                 self.smiles_strings.append(resolve(mlc, 'smiles'))
             with gaff2xml.utils.enter_temp_directory():  # Avoid dumping 50 antechamber files in local directory.
                 ligand_trajectories, ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml(self.smiles_strings)    
