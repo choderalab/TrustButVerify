@@ -17,12 +17,17 @@ from protein_system import System
 import gaff2xml
 import itertools
 
+import pandas as pd
+import pymbar
+import scipy.optimize as so
+
 N_STEPS_MIXTURES = 25000000 # 50 ns
 N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
-OUTPUT_FREQUENCY_MIXTURES = 499 #500
+OUTPUT_FREQUENCY_MIXTURES = 2500 # 5ps
+OUTPUT_DATA_FREQUENCY_MIXTURES = 125 # 0.25ps
 
 class MixtureSystem(System):
-    def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
+    def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, output_data_frequency=OUTPUT_DATA_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
         super(MixtureSystem, self).__init__(temperature=temperature, pressure=pressure, output_frequency=output_frequency, n_steps=n_steps, equil_output_frequency=equil_output_frequency, **kwargs)
 
         self._main_dir = os.getcwd()
@@ -32,6 +37,7 @@ class MixtureSystem(System):
         self.n_monomers = n_monomers
         identifier = list(itertools.chain(cas_strings, [str(n) for n in n_monomers], [str(temperature).split(' ')[0]]))
         self._target_name = '_'.join(identifier)
+        self.output_data_frequency = output_data_frequency
 
     def build(self):
         utils.make_path('monomers/')
@@ -148,7 +154,7 @@ class MixtureSystem(System):
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Production.')
         simulation.reporters.append(app.DCDReporter(self.production_dcd_filename, self.output_frequency))
-        simulation.reporters.append(NonbondedStateDataReporter(self.production_data_filename, self.output_frequency, step=True, potentialEnergy=True, temperature=True, density=True))
+        simulation.reporters.append(NonbondedStateDataReporter(self.production_data_filename, self.output_data_frequency, step=True, potentialEnergy=True, temperature=True, density=True))
         simulation.step(self.n_steps)
 
         del(simulation)
