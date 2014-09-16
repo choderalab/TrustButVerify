@@ -15,27 +15,25 @@ from .nonbondedstatedatareporter import NonbondedStateDataReporter
 
 from protein_system import System
 import gaff2xml
-import cStringIO
 import itertools
 
 N_STEPS_MIXTURES = 25000000 # 50 ns
 N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
-OUTPUT_FREQUENCY_MIXTURES = 500
+OUTPUT_FREQUENCY_MIXTURES = 5000 # 10ps
+OUTPUT_DATA_FREQUENCY_MIXTURES = 125 # 0.25ps
 
 class MixtureSystem(System):
-    def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
+    def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, output_data_frequency=OUTPUT_DATA_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, **kwargs):
         super(MixtureSystem, self).__init__(temperature=temperature, pressure=pressure, output_frequency=output_frequency, n_steps=n_steps, equil_output_frequency=equil_output_frequency, **kwargs)
 
         self._main_dir = os.getcwd()
         
         self.cas_strings = cas_strings
-        self.smiles_strings = []
-        for mlc in cas_strings:
-            self.smiles_strings.append(resolve(mlc, 'smiles'))
 
         self.n_monomers = n_monomers
         identifier = list(itertools.chain(cas_strings, [str(n) for n in n_monomers], [str(temperature).split(' ')[0]]))
         self._target_name = '_'.join(identifier)
+        self.output_data_frequency = output_data_frequency
 
     def build(self):
         utils.make_path('monomers/')
@@ -48,13 +46,16 @@ class MixtureSystem(System):
         utils.make_path(self.box_pdb_filename)
 
         rungaff = False
-        if not os.path.exists(self.ffxml_filename):
+        if not os.path.exists(self.ffxml_filename):     
             rungaff = True
         for filename in self.monomer_pdb_filenames:
             if not os.path.exists(filename):
                 rungaff = True
 
         if rungaff:
+            self.smiles_strings = []
+            for mlc in cas_strings:
+                self.smiles_strings.append(resolve(mlc, 'smiles'))
             with gaff2xml.utils.enter_temp_directory():  # Avoid dumping 50 antechamber files in local directory.
                 ligand_trajectories, ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml(self.smiles_strings)    
             if not os.path.exists(self.ffxml_filename):
@@ -62,13 +63,15 @@ class MixtureSystem(System):
                 outfile.write(ffxml.read())
                 outfile.close()
                 ffxml.seek(0)
-
             for k, ligand_traj in enumerate(ligand_trajectories):
                 pdb_filename = self.monomer_pdb_filenames[k]
-                if not os.path.exists(pdb_filename): 
+                if not os.path.exists(pdb_filename):
                     ligand_traj.save(pdb_filename)
 
         self.ffxml = app.ForceField(self.ffxml_filename)
+
+        if "7732-18-5" in self.cas_strings:
+            self.ffxml.loadFile("tip3p.xml")
 
         if not os.path.exists(self.box_pdb_filename):
             self.packed_trj = gaff2xml.packmol.pack_box(self.monomer_pdb_filenames, self.n_monomers)
@@ -92,7 +95,7 @@ class MixtureSystem(System):
         ff = self.ffxml
 
         system = ff.createSystem(topology, nonbondedMethod=app.PME, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
-        integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
+        integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep/10.)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
         simulation = app.Simulation(topology, system, integrator, platform=self.platform)
@@ -104,9 +107,19 @@ class MixtureSystem(System):
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Equilibrating.')
 
-        simulation.reporters.append(app.DCDReporter(self.equil_dcd_filename, self.equil_output_frequency))
-        simulation.step(self.n_equil_steps)
+        simulation.step(1000)
         
+        simulation.integrator.setStepSize(self.equil_timestep/5.0)
+        simulation.step(1000)
+
+        simulation.integrator.setStepSize(self.equil_timestep/2.0)
+        simulation.step(1000)
+
+        simulation.reporters.append(app.DCDReporter(self.equil_dcd_filename, self.equil_output_frequency))
+        simulation.integrator.setStepSize(self.equil_timestep)
+        simulation.step(self.n_equil_steps)
+
+
         # Re-write a better PDB with correct box sizes.
         traj = md.load(self.equil_dcd_filename, top=self.box_pdb_filename)[-1]
         traj.save(self.equil_pdb_filename)
@@ -120,7 +133,7 @@ class MixtureSystem(System):
 
         utils.make_path(self.production_dcd_filename)
 
-        if os.path.exists(self.production_dcd_filename):
+        if os.path.exists(self.production_pdb_filename):
             return
         
         ff = self.ffxml
@@ -137,8 +150,10 @@ class MixtureSystem(System):
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Production.')
         simulation.reporters.append(app.DCDReporter(self.production_dcd_filename, self.output_frequency))
-        simulation.reporters.append(NonbondedStateDataReporter(self.production_data_filename, self.output_frequency, step=True, potentialEnergy=True, temperature=True, density=True))
+        simulation.reporters.append(NonbondedStateDataReporter(self.production_data_filename, self.output_data_frequency, step=True, potentialEnergy=True, temperature=True, density=True))
         simulation.step(self.n_steps)
 
+        del(simulation)
+        print(os.path.exists(self.production_dcd_filename))
         traj = md.load(self.production_dcd_filename, top=self.equil_pdb_filename)[-1]
         traj.save(self.production_pdb_filename)
