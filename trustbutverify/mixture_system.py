@@ -17,10 +17,6 @@ from protein_system import System
 import gaff2xml
 import itertools
 
-import pandas as pd
-import pymbar
-import scipy.optimize as so
-
 N_STEPS_MIXTURES = 25000000 # 50 ns
 N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
 OUTPUT_FREQUENCY_MIXTURES = 5000 # 10ps
