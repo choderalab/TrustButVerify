@@ -24,7 +24,7 @@ N_STEPS_MIXTURES = 500000 # 1 ns (at a time)
 N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
 OUTPUT_FREQUENCY_MIXTURES = 5000 # 10ps
 OUTPUT_DATA_FREQUENCY_MIXTURES = 125 # 0.25ps
-STD_ERROR_TOLERANCE = 0.1 # g/mL
+STD_ERROR_TOLERANCE = 0.0001 # g/mL
 
 class MixtureSystem(System):
     def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, output_data_frequency=OUTPUT_DATA_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, stderr_tolerance = STD_ERROR_TOLERANCE, **kwargs):
