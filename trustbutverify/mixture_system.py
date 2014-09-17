@@ -37,6 +37,7 @@ class MixtureSystem(System):
         self._target_name = '_'.join(identifier)
         self.output_data_frequency = output_data_frequency
         self.stderr_tolerance = stderr_tolerance
+        self.ran_equilibrate = False
 
     def build(self):
         utils.make_path('monomers/')
@@ -82,6 +83,42 @@ class MixtureSystem(System):
         else:
             self.packed_trj = md.load(self.box_pdb_filename)
 
+    def equilibrate(self):
+        self.ran_equilibrate = True
+        utils.make_path('equil/')
+        self.equil_dcd_filename = "equil/"+self.identifier +"_equil.dcd"
+        self.equil_pdb_filename = "equil/"+self.identifier +"_equil.pdb"
+        utils.make_path(self.equil_pdb_filename)
+        
+        if os.path.exists(self.equil_pdb_filename):
+            return
+
+        positions = self.packed_trj.openmm_positions(0)
+        topology = self.packed_trj.top.to_openmm()
+        topology.setUnitCellDimensions(mm.Vec3(*self.packed_trj.unitcell_lengths[0]) * u.nanometer)
+        
+        ff = self.ffxml
+
+        system = ff.createSystem(topology, nonbondedMethod=app.PME, nonbondedCutoff=self.cutoff, constraints=app.HBonds)
+        integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
+        system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
+
+        simulation = app.Simulation(topology, system, integrator, platform=self.platform)
+        simulation.context.setPositions(positions)
+        
+        print('Minimizing.')
+        simulation.minimizeEnergy()
+
+        simulation.context.setVelocitiesToTemperature(self.temperature)
+        print('Equilibrating.')
+
+        simulation.reporters.append(app.DCDReporter(self.equil_dcd_filename, self.equil_output_frequency))
+        simulation.step(self.n_equil_steps)
+
+
+        # Re-write a better PDB with correct box sizes.
+        traj = md.load(self.equil_dcd_filename, top=self.box_pdb_filename)[-1]
+        traj.save(self.equil_pdb_filename)
 
     def production(self):  
         utils.make_path('production/')
@@ -94,9 +131,14 @@ class MixtureSystem(System):
         if os.path.exists(self.production_pdb_filename):
             return        
 
-        positions = self.packed_trj.openmm_positions(0)
-        topology = self.packed_trj.top.to_openmm()
-        topology.setUnitCellDimensions(mm.Vec3(*self.packed_trj.unitcell_lengths[0]) * u.nanometer)
+        if self.ran_equilibrate:
+            pdb = app.PDBFile(self.equil_pdb_filename)
+            topology = pdb.topology
+            positions = pdb.positions
+        else:
+            positions = self.packed_trj.openmm_positions(0)
+            topology = self.packed_trj.top.to_openmm()
+            topology.setUnitCellDimensions(mm.Vec3(*self.packed_trj.unitcell_lengths[0]) * u.nanometer)
         
         ff = self.ffxml
 
@@ -107,8 +149,9 @@ class MixtureSystem(System):
         simulation = app.Simulation(topology, system, integrator, platform=self.platform)
         simulation.context.setPositions(positions)
 
-        print('Minimizing.')
-        simulation.minimizeEnergy()
+        if not self.ran_equilibrate:
+            print('Minimizing.')
+            simulation.minimizeEnergy()
 
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Production.')
@@ -127,6 +170,8 @@ class MixtureSystem(System):
                 converged = True
 
         del(simulation)
-        print(os.path.exists(self.production_dcd_filename))
-        traj = md.load(self.production_dcd_filename, top=self.box_pdb_filename)[-1]
+        if self.ran_equilibrate:
+            traj = md.load(self.production_dcd_filename, top=self.equil_pdb_filename)[-1]
+        else:
+            traj = md.load(self.production_dcd_filename, top=self.box_pdb_filename)[-1]
         traj.save(self.production_pdb_filename)
