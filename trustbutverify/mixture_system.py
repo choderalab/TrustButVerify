@@ -60,8 +60,13 @@ class MixtureSystem(System):
             self.smiles_strings = []
             for mlc in self.cas_strings:
                 self.smiles_strings.append(resolve(mlc, 'smiles'))
+            oemlcs = []
             with gaff2xml.utils.enter_temp_directory():  # Avoid dumping 50 antechamber files in local directory.
-                ligand_trajectories, ffxml = gaff2xml.utils.smiles_to_mdtraj_ffxml(self.smiles_strings)    
+                for smiles_string in self.smiles_strings:
+                    m = gaff2xml.openeye.smiles_to_oemol(smiles_string)
+                    m = gaff2xml.openeye.get_charges(m)
+                    oemlcs.append(m)
+                ligand_trajectories, ffxml = gaff2xml.openeye.oemols_to_ffxml(oemlcs)    
             if not os.path.exists(self.ffxml_filename):
                 outfile = open(self.ffxml_filename, 'w')
                 outfile.write(ffxml.read())
