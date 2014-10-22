@@ -63,23 +63,16 @@ class MixtureSystem(System):
             oemlcs = []
             with gaff2xml.utils.enter_temp_directory():  # Avoid dumping 50 antechamber files in local directory.
                 for smiles_string in self.smiles_strings:
-                    print(smiles_string)
                     m = gaff2xml.openeye.smiles_to_oemol(smiles_string)
                     m = gaff2xml.openeye.get_charges(m)
-                    print(m)
                     oemlcs.append(m)
-                print("length of oemlcs")
-                print(len(oemlcs))
                 ligand_trajectories, ffxml = gaff2xml.openeye.oemols_to_ffxml(oemlcs)    
-            print(len(ligand_trajectories))
             if not os.path.exists(self.ffxml_filename):
                 outfile = open(self.ffxml_filename, 'w')
                 outfile.write(ffxml.read())
                 outfile.close()
                 ffxml.seek(0)
             for k, ligand_traj in enumerate(ligand_trajectories):
-                print("ligand traj #")
-                print(k)
                 pdb_filename = self.monomer_pdb_filenames[k]
                 if not os.path.exists(pdb_filename):
                     ligand_traj.save(pdb_filename)
