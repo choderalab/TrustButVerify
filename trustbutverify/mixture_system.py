@@ -52,9 +52,10 @@ class MixtureSystem(System):
         rungaff = False
         if not os.path.exists(self.ffxml_filename):     
             rungaff = True
-        for filename in self.monomer_pdb_filenames:
-            if not os.path.exists(filename):
-                rungaff = True
+        if not os.path.exists(self.box_pdb_filename):
+            for filename in self.monomer_pdb_filenames:
+                if not os.path.exists(filename):
+                    rungaff = True
 
         if rungaff:
             self.smiles_strings = []
@@ -129,7 +130,7 @@ class MixtureSystem(System):
         utils.make_path('production/')
         self.production_dcd_filename = "production/"+self.identifier +"_production.dcd"
         self.production_pdb_filename = "production/"+self.identifier +"_production.pdb"
-        self.production_data_filename = "production/"+self.identifier +"_production.dat"
+        self.production_data_filename = "production/"+self.identifier +"_production.csv"
 
         utils.make_path(self.production_dcd_filename)
 
