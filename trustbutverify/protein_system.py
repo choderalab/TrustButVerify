@@ -3,7 +3,7 @@ import os
 import mdtraj as md
 
 import pdbfixer
-import pdbbuilder
+#import pdbbuilder
 from simtk.openmm import app
 import simtk.openmm as mm
 from simtk import unit as u

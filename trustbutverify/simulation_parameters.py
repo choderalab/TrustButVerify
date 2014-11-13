@@ -10,7 +10,7 @@ PADDING = 1.0 * u.nanometers
 CUTOFF = 0.95 * u.nanometers
 PRESSURE = 1.0 * u.atmospheres
 FRICTION = 1.0 / u.picoseconds
-EQUIL_FRICTION = 5.0 / u.picoseconds
+EQUIL_FRICTION = 10.0 / u.picoseconds
 BAROSTAT_FREQUENCY = 25
 
 EQUIL_TIMESTEP = 1.0 * u.femtoseconds
