@@ -52,9 +52,10 @@ class MixtureSystem(System):
         rungaff = False
         if not os.path.exists(self.ffxml_filename):     
             rungaff = True
-        for filename in self.monomer_pdb_filenames:
-            if not os.path.exists(filename):
-                rungaff = True
+        if not os.path.exists(self.box_pdb_filename):
+            for filename in self.monomer_pdb_filenames:
+                if not os.path.exists(filename):
+                    rungaff = True
 
         if rungaff:
             self.smiles_strings = []
@@ -64,7 +65,7 @@ class MixtureSystem(System):
             with gaff2xml.utils.enter_temp_directory():  # Avoid dumping 50 antechamber files in local directory.
                 for smiles_string in self.smiles_strings:
                     m = gaff2xml.openeye.smiles_to_oemol(smiles_string)
-                    m = gaff2xml.openeye.get_charges(m)
+                    m = gaff2xml.openeye.get_charges(m, strictStereo=False, keep_confs=1)
                     oemlcs.append(m)
                 ligand_trajectories, ffxml = gaff2xml.openeye.oemols_to_ffxml(oemlcs)    
             if not os.path.exists(self.ffxml_filename):
@@ -129,7 +130,7 @@ class MixtureSystem(System):
         utils.make_path('production/')
         self.production_dcd_filename = "production/"+self.identifier +"_production.dcd"
         self.production_pdb_filename = "production/"+self.identifier +"_production.pdb"
-        self.production_data_filename = "production/"+self.identifier +"_production.dat"
+        self.production_data_filename = "production/"+self.identifier +"_production.csv"
 
         utils.make_path(self.production_dcd_filename)
 
