@@ -1,15 +1,12 @@
 from trustbutverify import protein_system
 from simtk import unit as u
 import itertools
-import numpy as np
 
 amino_acids = ["R","H", "K", "D", "E", "S", "T", "N", "Q", "C", "G", "A", "I", "L", "M", "F", "W", "Y", "V"]
 amino_acids_noG = ["R","H", "K", "D", "E", "S", "T", "N", "Q", "C", "A", "I", "L", "M", "F", "W", "Y", "V"]
 
 forcefields = ["amber99sbnmr", "amber99sbildn", "amber03", "amber96", "a99sb-v2-r1"]
 water_models = ["tip3p", "tip3pfb", "tip4pew", "tip4pfb"]
-
-temperatures = (np.arange(20.0,41.0,1.0) + 273.15) * u.kelvin
 
 targets = []
 
