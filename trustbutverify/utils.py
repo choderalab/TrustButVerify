@@ -1,3 +1,4 @@
+import simtk.openmm as mm
 import os
 
 def make_path(filename):
@@ -6,3 +7,4 @@ def make_path(filename):
         os.makedirs(path)
     except OSError:
         pass
+
