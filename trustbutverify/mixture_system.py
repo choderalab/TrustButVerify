@@ -11,7 +11,6 @@ from .target import Target
 from .simulation_parameters import *
 from .cirpy import resolve 
 import utils
-from .nonbondedstatedatareporter import NonbondedStateDataReporter
 
 from protein_system import System
 import gaff2xml
@@ -162,12 +161,12 @@ class MixtureSystem(System):
         simulation.context.setVelocitiesToTemperature(self.temperature)
         print('Production.')
         simulation.reporters.append(app.DCDReporter(self.production_dcd_filename, self.output_frequency))
-        simulation.reporters.append(NonbondedStateDataReporter(self.production_data_filename, self.output_data_frequency, step=True, potentialEnergy=True, temperature=True, density=True))
+        simulation.reporters.append(app.StateDataReporter(self.production_data_filename, self.output_data_frequency, step=True, potentialEnergy=True, temperature=True, density=True))
 
         converged = False
         while not converged:
             simulation.step(self.n_steps)
-            d = pd.read_csv(self.production_data_filename, names=["step", "U_NB", "U", "Temperature", "Density"], skiprows=1)
+            d = pd.read_csv(self.production_data_filename, names=["step", "U", "Temperature", "Density"], skiprows=1)
             density_ts = np.array(d.Density)
             [t0, g, Neff] = ts.detectEquilibration(density_ts, nskip=1000)
             density_ts = density_ts[t0:]
