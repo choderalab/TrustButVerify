@@ -109,7 +109,7 @@ class MixtureSystem(System):
         integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
-        simulation = app.Simulation(topology, system, integrator, platform=self.platform)
+        simulation = app.Simulation(topology, system, integrator)
         simulation.context.setPositions(positions)
         
         print('Minimizing.')
@@ -152,7 +152,7 @@ class MixtureSystem(System):
         integrator = mm.LangevinIntegrator(self.temperature, self.friction, self.timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
-        simulation = app.Simulation(topology, system, integrator, platform=self.platform)
+        simulation = app.Simulation(topology, system, integrator)
         simulation.context.setPositions(positions)
 
         if not self.ran_equilibrate:

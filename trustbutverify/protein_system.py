@@ -36,7 +36,6 @@ class System(Target):
         self.protein_output_frequency = protein_output_frequency
         
         self.temperature = temperature
-        self.platform = utils.get_platform()
 
 
     def equilibrate(self, ff_name, water_name):
@@ -62,10 +61,7 @@ class System(Target):
         integrator = mm.LangevinIntegrator(self.temperature, self.equil_friction, self.equil_timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
-        platform = mm.Platform.getPlatformByName("CUDA")
-        platform.setPropertyDefaultValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
-
-        simulation = app.Simulation(topology, system, integrator, platform=platform)
+        simulation = app.Simulation(topology, system, integrator)
         simulation.context.setPositions(positions)
         
         print('Minimizing.')
@@ -113,10 +109,7 @@ class System(Target):
         integrator = mm.LangevinIntegrator(self.temperature, self.friction, self.timestep)
         system.addForce(mm.MonteCarloBarostat(self.pressure, self.temperature, self.barostat_frequency))
 
-        platform = mm.Platform.getPlatformByName("CUDA")
-        platform.setPropertyDefaultValue("CudaDeviceIndex", os.environ["CUDA_VISIBLE_DEVICES"])
-        
-        simulation = app.Simulation(pdb.topology, system, integrator, platform=platform)
+        simulation = app.Simulation(pdb.topology, system, integrator)
         simulation.context.setPositions(pdb.positions)
 
         simulation.context.setVelocitiesToTemperature(self.temperature)
