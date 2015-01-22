@@ -19,11 +19,12 @@ import itertools
 from pymbar import timeseries as ts
 import pandas as pd
 
-N_STEPS_MIXTURES = 500000 # 1 ns (at a time)
+N_STEPS_MIXTURES = 500000 # 0.5 ns (at a time)
 N_EQUIL_STEPS_MIXTURES = 5000000 # 5ns
-OUTPUT_FREQUENCY_MIXTURES = 5000 # 10ps
-OUTPUT_DATA_FREQUENCY_MIXTURES = 125 # 0.25ps
-STD_ERROR_TOLERANCE = 0.0001 # g/mL
+OUTPUT_FREQUENCY_MIXTURES = 10000 # 10ps
+OUTPUT_DATA_FREQUENCY_MIXTURES = 250 # 0.25ps
+STD_ERROR_TOLERANCE = 0.0002 # g/mL
+TIMESTEP = 1.0 * u.femtoseconds
 
 class MixtureSystem(System):
     def __init__(self, cas_strings, n_monomers, temperature, pressure=PRESSURE, output_frequency=OUTPUT_FREQUENCY_MIXTURES, output_data_frequency=OUTPUT_DATA_FREQUENCY_MIXTURES, n_steps=N_STEPS_MIXTURES, equil_output_frequency=OUTPUT_FREQUENCY_MIXTURES, stderr_tolerance = STD_ERROR_TOLERANCE, **kwargs):
